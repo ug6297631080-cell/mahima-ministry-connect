@@ -4,82 +4,63 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mahima Ministry Connect</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #020617, #0b2a63, #d4af37);
-      color: white;
-    }
-    .app {
-      min-height: 100vh;
-      padding: 24px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .card {
-      width: 100%;
-      max-width: 430px;
-      background: rgba(0,0,0,0.45);
-      border: 1px solid rgba(212,175,55,0.4);
-      border-radius: 22px;
-      padding: 24px;
-      text-align: center;
-    }
-    h1 { color: #d4af37; }
-    input, select, button {
-      width: 100%;
-      padding: 14px;
-      margin: 8px 0;
-      border-radius: 12px;
-      border: none;
-      font-size: 16px;
-    }
-    button {
-      background: #d4af37;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .secondary {
-      background: rgba(255,255,255,0.15);
-      color: white;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app">
-    <div class="card">
-      <h1>Mahima Ministry</h1>
-      <h2>Audio Prayer Room</h2>
 
-      <input id="name" placeholder="আপনার নাম লিখুন" />
+  <main class="app">
+    <section class="card">
+      <div class="brand">
+        <div class="logo">MM</div>
+        <h1>Mahima Ministry</h1>
+        <p>Audio Prayer Platform</p>
+      </div>
 
-      <select id="role">
-        <option value="member">Member</option>
-        <option value="admin">Admin</option>
-      </select>
+      <div class="form-box">
+        <input id="nameInput" type="text" placeholder="আপনার নাম লিখুন" />
 
-      <button onclick="joinRoom()">Join Prayer Room</button>
-      <button class="secondary">Raise Hand</button>
+        <select id="roleInput">
+          <option value="member">Member</option>
+          <option value="admin">Admin</option>
+        </select>
 
-      <p id="status">Status: Not Connected</p>
-    </div>
-  </div>
+        <select id="roomInput">
+          <option value="morning-prayer">Morning Prayer Room</option>
+          <option value="sunday-service">Sunday Service Room</option>
+          <option value="bible-study">Bible Study Room</option>
+        </select>
 
-  <script>
-    function joinRoom() {
-      const name = document.getElementById("name").value;
-      const role = document.getElementById("role").value;
+        <button onclick="joinRoom()">Join Prayer Room</button>
+      </div>
 
-      if (!name) {
-        alert("নাম লিখুন");
-        return;
-      }
+      <div id="roomPanel" class="room-panel hidden">
+        <h2 id="roomTitle">Prayer Room</h2>
+        <p id="userStatus">Not connected</p>
 
-      document.getElementById("status").innerText =
-        "Joined as " + role + ": " + name;
-    }
-  </script>
+        <div class="controls">
+          <button onclick="raiseHand()">✋ Raise Hand</button>
+          <button onclick="toggleMic()">🎙️ Mic</button>
+          <button class="danger" onclick="leaveRoom()">Leave</button>
+        </div>
+
+        <div id="adminPanel" class="admin-panel hidden">
+          <h3>Admin Control</h3>
+          <button>Mute All</button>
+          <button>Lock Room</button>
+          <button>Allow Speaker</button>
+        </div>
+      </div>
+
+      <div class="room-list">
+        <h3>Available Rooms</h3>
+        <div>📖 Morning Prayer</div>
+        <div>⛪ Sunday Service</div>
+        <div>📚 Bible Study</div>
+        <div>❤️ Prayer Request</div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
 </body>
 </html>
