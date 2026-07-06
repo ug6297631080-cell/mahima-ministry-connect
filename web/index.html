@@ -8,59 +8,79 @@
 </head>
 <body>
 
-  <main class="app">
-    <section class="card">
-      <div class="brand">
-        <div class="logo">MM</div>
-        <h1>Mahima Ministry</h1>
-        <p>Audio Prayer Platform</p>
+<main class="app">
+  <section class="hero-card">
+
+    <div class="brand">
+      <div class="logo-placeholder">MM</div>
+      <h1>MAHIMA MINISTRY</h1>
+      <p>AUDIO PRAYER PLATFORM</p>
+    </div>
+
+    <div class="join-box">
+      <input id="nameInput" type="text" placeholder="আপনার নাম লিখুন">
+
+      <select id="roleInput">
+        <option value="member">Member</option>
+        <option value="admin">Admin</option>
+      </select>
+
+      <select id="roomInput">
+        <option value="morning-prayer">Morning Prayer Room</option>
+        <option value="sunday-service">Sunday Service Room</option>
+        <option value="bible-study">Bible Study Room</option>
+        <option value="prayer-request">Prayer Request Room</option>
+      </select>
+
+      <button onclick="joinRoom()">🎧 JOIN PRAYER ROOM</button>
+    </div>
+
+    <div id="roomPanel" class="room-panel hidden">
+      <h2 id="roomTitle">Prayer Room</h2>
+      <p id="userStatus">Not connected</p>
+
+      <div class="controls">
+        <button onclick="raiseHand()">✋ Raise Hand</button>
+        <button onclick="toggleMic()">🎙️ Mic</button>
+        <button class="danger" onclick="leaveRoom()">Leave</button>
       </div>
 
-      <div class="form-box">
-        <input id="nameInput" type="text" placeholder="আপনার নাম লিখুন" />
-
-        <select id="roleInput">
-          <option value="member">Member</option>
-          <option value="admin">Admin</option>
-        </select>
-
-        <select id="roomInput">
-          <option value="morning-prayer">Morning Prayer Room</option>
-          <option value="sunday-service">Sunday Service Room</option>
-          <option value="bible-study">Bible Study Room</option>
-        </select>
-
-        <button onclick="joinRoom()">Join Prayer Room</button>
+      <div id="adminPanel" class="admin-panel hidden">
+        <h3>👑 Admin Control</h3>
+        <button>Mute All</button>
+        <button>Allow Speaker</button>
+        <button>Lock Room</button>
       </div>
+    </div>
 
-      <div id="roomPanel" class="room-panel hidden">
-        <h2 id="roomTitle">Prayer Room</h2>
-        <p id="userStatus">Not connected</p>
+    <div class="rooms-section">
+      <h3>👥 AVAILABLE ROOMS</h3>
 
-        <div class="controls">
-          <button onclick="raiseHand()">✋ Raise Hand</button>
-          <button onclick="toggleMic()">🎙️ Mic</button>
-          <button class="danger" onclick="leaveRoom()">Leave</button>
-        </div>
-
-        <div id="adminPanel" class="admin-panel hidden">
-          <h3>Admin Control</h3>
-          <button>Mute All</button>
-          <button>Lock Room</button>
-          <button>Allow Speaker</button>
-        </div>
+      <div class="room-grid">
+        <div class="room-card">🙏<span>Morning<br>Prayer</span></div>
+        <div class="room-card">⛪<span>Sunday<br>Service</span></div>
+        <div class="room-card">📖<span>Bible<br>Study</span></div>
+        <div class="room-card">❤️<span>Prayer<br>Request</span></div>
       </div>
+    </div>
 
-      <div class="room-list">
-        <h3>Available Rooms</h3>
-        <div>📖 Morning Prayer</div>
-        <div>⛪ Sunday Service</div>
-        <div>📚 Bible Study</div>
-        <div>❤️ Prayer Request</div>
-      </div>
-    </section>
-  </main>
+    <div class="info-box">
+      <h3>🔊 ROOM INFO</h3>
+      <p>Join our prayer rooms and be blessed.</p>
+      <p>Let’s connect in faith and prayer together.</p>
+    </div>
 
-  <script src="app.js"></script>
+    <nav class="bottom-nav">
+      <div>🏠<span>HOME</span></div>
+      <div>👥<span>ROOMS</span></div>
+      <div class="active">🎧<span>JOIN</span></div>
+      <div>❤️<span>REQUEST</span></div>
+      <div>👤<span>PROFILE</span></div>
+    </nav>
+
+  </section>
+</main>
+
+<script src="app.js"></script>
 </body>
 </html>
