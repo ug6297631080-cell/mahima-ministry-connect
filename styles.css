@@ -185,3 +185,64 @@ button:active {
 }
 
 .room-card span {
+display: block;
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.info-box p {
+  margin: 8px 0;
+  color: #e5e7eb;
+  line-height: 1.5;
+}
+
+.bottom-nav {
+  margin-top: 18px;
+  padding: 10px 8px;
+  border-radius: 24px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: rgba(0, 18, 50, 0.88);
+  border: 1px solid rgba(255, 218, 94, 0.55);
+}
+
+.bottom-nav div {
+  text-align: center;
+  font-size: 22px;
+  color: #e5e7eb;
+}
+
+.bottom-nav span {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.bottom-nav .active {
+  color: var(--gold-light);
+  transform: translateY(-8px);
+}
+
+.bottom-nav .active::before {
+  content: "";
+  display: block;
+  width: 54px;
+  height: 54px;
+  margin: -26px auto 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f4c430, #ffe27a);
+  box-shadow: 0 0 24px rgba(255, 215, 90, 0.75);
+}
+
+@media (min-width: 600px) {
+  .room-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .controls {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  }
