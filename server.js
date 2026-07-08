@@ -4,14 +4,27 @@ const { AccessToken } = require("livekit-server-sdk");
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"]
+}));
+
 app.use(express.json());
 
 const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
 const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
 
 app.get("/", (req, res) => {
-  res.send("Mahima Ministry LiveKit Token Server is running");
+  res.send("Mahima Ministry LiveKit Token Server is running ✅");
+});
+
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    apiKeyLoaded: Boolean(LIVEKIT_API_KEY),
+    apiSecretLoaded: Boolean(LIVEKIT_API_SECRET)
+  });
 });
 
 app.post("/get-token", async (req, res) => {
@@ -26,25 +39,25 @@ app.post("/get-token", async (req, res) => {
 
     if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
       return res.status(500).json({
-        error: "LiveKit API Key or Secret missing"
+        error: "LiveKit API Key or Secret missing in Render Environment"
       });
     }
 
-    const participantIdentity =
-      participantName.toLowerCase().replace(/[^a-z0-9]/g, "-") +
-      "-" +
-      Date.now();
+    const safeName = participantName
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
 
-    const token = new AccessToken(
-      LIVEKIT_API_KEY,
-      LIVEKIT_API_SECRET,
-      {
-        identity: participantIdentity,
-        name: participantName
-      }
-    );
+    const identity = `${safeName || "participant"}-${Date.now()}`;
 
-    token.addGrant({
+    const at = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
+      identity,
+      name: participantName,
+      ttl: "6h"
+    });
+
+    at.addGrant({
       roomJoin: true,
       room: roomName,
       canSubscribe: true,
@@ -52,17 +65,20 @@ app.post("/get-token", async (req, res) => {
       canPublishData: true
     });
 
-    const jwt = await token.toJwt();
+    const token = await at.toJwt();
 
     res.json({
-      token: jwt,
-      identity: participantIdentity
+      token,
+      identity,
+      roomName,
+      role: role || "member"
     });
 
   } catch (error) {
-    console.error("Token error:", error);
+    console.error("TOKEN_ERROR:", error);
     res.status(500).json({
-      error: "Failed to create token"
+      error: "Failed to create LiveKit token",
+      details: error.message
     });
   }
 });
