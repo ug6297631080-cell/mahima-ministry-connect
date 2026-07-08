@@ -48,7 +48,7 @@ app.post("/get-token", async (req, res) => {
       roomJoin: true,
       room: roomName,
       canSubscribe: true,
-      canPublish: true ,
+      canPublish: true,
       canPublishData: true
     });
 
