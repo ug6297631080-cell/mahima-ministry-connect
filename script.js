@@ -296,3 +296,164 @@ function listenParticipants(roomRef) {
       updateUserStatus(snapshot.size);
     });
 }
+/* ===============================
+   Mahima Ministry Connect V2
+   Part 3/4
+   LiveKit Audio Connection
+================================ */
+
+async function connectLiveKit(roomName, participantName, role) {
+  try {
+    if (!window.LivekitClient) {
+      throw new Error("LiveKit client load হয়নি। index.html-এ LiveKit script আছে কিনা দেখুন।");
+    }
+
+    const response = await fetch(TOKEN_SERVER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        roomName,
+        participantName,
+        role
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.token) {
+      throw new Error(data.error || data.details || "Token পাওয়া যায়নি");
+    }
+
+    const Room = window.LivekitClient.Room;
+    const RoomEvent = window.LivekitClient.RoomEvent;
+
+    lkRoom = new Room({
+      adaptiveStream: true,
+      dynacast: true
+    });
+
+    lkRoom.on(RoomEvent.TrackSubscribed, (track) => {
+      if (track.kind === "audio") {
+        const audioElement = track.attach();
+        audioElement.autoplay = true;
+        audioElement.playsInline = true;
+        audioElement.style.display = "none";
+        document.body.appendChild(audioElement);
+      }
+    });
+
+    lkRoom.on(RoomEvent.TrackUnsubscribed, (track) => {
+      track.detach().forEach((element) => element.remove());
+    });
+
+    lkRoom.on(RoomEvent.ParticipantConnected, (participant) => {
+      console.log("Participant connected:", participant.identity);
+    });
+
+    lkRoom.on(RoomEvent.ParticipantDisconnected, (participant) => {
+      console.log("Participant disconnected:", participant.identity);
+    });
+
+    lkRoom.on(RoomEvent.Disconnected, () => {
+      console.log("LiveKit room disconnected");
+    });
+
+    await lkRoom.connect(LIVEKIT_URL, data.token);
+
+    if (role === "admin") {
+      micOn = true;
+      allowedToSpeak = true;
+      await lkRoom.localParticipant.setMicrophoneEnabled(true);
+    } else {
+      micOn = false;
+      allowedToSpeak = false;
+      await lkRoom.localParticipant.setMicrophoneEnabled(false);
+    }
+
+    await db.collection("rooms")
+      .doc(roomName)
+      .collection("participants")
+      .doc(currentUser.id)
+      .update({
+        micOn,
+        allowedToSpeak
+      });
+
+    updateMicUI();
+    showMessage("Audio room connected ✅");
+
+  } catch (error) {
+    console.error("Audio connect error:", error);
+    showMessage("Audio connect error: " + error.message);
+  }
+}
+
+async function setLocalMic(enabled) {
+  try {
+    if (!lkRoom || !lkRoom.localParticipant) return;
+
+    await lkRoom.localParticipant.setMicrophoneEnabled(enabled);
+  } catch (error) {
+    console.warn("setLocalMic error:", error);
+  }
+}
+
+async function toggleMic() {
+  if (!currentUser) {
+    showMessage("আগে Prayer Room-এ Join করুন");
+    return;
+  }
+
+  if (!allowedToSpeak) {
+    showMessage("Admin অনুমতি না দিলে Mic চালু হবে না");
+    return;
+  }
+
+  micOn = !micOn;
+
+  await db.collection("rooms")
+    .doc(currentUser.roomId)
+    .collection("participants")
+    .doc(currentUser.id)
+    .update({
+      micOn
+    });
+
+  await setLocalMic(micOn);
+  updateMicUI();
+}
+
+async function leaveRoom() {
+  if (!currentUser) return;
+
+  const roomRef = db.collection("rooms").doc(currentUser.roomId);
+
+  try {
+    await roomRef.collection("participants").doc(currentUser.id).delete();
+
+    if (lkRoom) {
+      lkRoom.disconnect();
+      lkRoom = null;
+    }
+
+    stopListeners();
+
+    currentUser = null;
+    micOn = false;
+    handRaised = false;
+    allowedToSpeak = false;
+    roomLocked = false;
+
+    getEl("roomPanel").classList.add("hidden");
+    getEl("adminPanel").classList.add("hidden");
+
+    updateMicUI();
+    showMessage("Room থেকে বেরিয়ে গেছেন");
+
+  } catch (error) {
+    console.error("Leave error:", error);
+    showMessage("Leave error: " + error.message);
+  }
+}
