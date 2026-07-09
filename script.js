@@ -107,3 +107,192 @@ function stopListeners() {
   unsubscribeParticipants = null;
   unsubscribeSelf = null;
 }
+/* ===============================
+   Mahima Ministry Connect V2
+   Part 2/4
+   Join Room + Firebase Sync
+================================ */
+
+async function joinRoom() {
+  try {
+    const name = getEl("nameInput").value.trim();
+    const role = getEl("roleInput").value;
+    const roomKey = getEl("roomInput").value;
+    const adminKey = getEl("adminKeyInput")?.value.trim();
+
+    if (!name) {
+      showMessage("দয়া করে আপনার নাম লিখুন");
+      return;
+    }
+
+    if (role === "admin" && adminKey !== ADMIN_SECRET_KEY) {
+      showMessage("Invalid Admin Key ❌");
+      return;
+    }
+
+    const roomId = roomIds[roomKey];
+    const roomRef = db.collection("rooms").doc(roomId);
+    const roomSnap = await roomRef.get();
+
+    if (roomSnap.exists) {
+      roomLocked = roomSnap.data().locked === true;
+
+      if (roomLocked && role !== "admin") {
+        showMessage("Room locked আছে। Admin unlock করলে join করা যাবে।");
+        return;
+      }
+    } else {
+      await roomRef.set({
+        name: roomNames[roomKey],
+        online: 0,
+        locked: false,
+        createdAt: new Date().toISOString()
+      });
+      roomLocked = false;
+    }
+
+    micOn = role === "admin";
+    allowedToSpeak = role === "admin";
+    handRaised = false;
+
+    currentUser = {
+      id: makeUserId(name, role),
+      name,
+      role,
+      roomKey,
+      roomId,
+      micOn,
+      handRaised,
+      allowedToSpeak,
+      online: true,
+      joinedAt: new Date().toISOString()
+    };
+
+    await roomRef
+      .collection("participants")
+      .doc(currentUser.id)
+      .set(currentUser, { merge: true });
+
+    getEl("roomPanel").classList.remove("hidden");
+    getEl("adminPanel").classList.toggle("hidden", role !== "admin");
+
+    updateRoomTitle();
+    updateRoleBadge();
+    updateMicUI();
+    updateUserStatus();
+
+    listenRoom(roomRef);
+    listenSelf(roomRef);
+    listenParticipants(roomRef);
+
+    await connectLiveKit(roomId, name, role);
+
+  } catch (error) {
+    console.error("Join room error:", error);
+    showMessage("Join error: " + error.message);
+  }
+}
+
+function listenRoom(roomRef) {
+  if (unsubscribeRoom) unsubscribeRoom();
+
+  unsubscribeRoom = roomRef.onSnapshot((doc) => {
+    if (!doc.exists || !currentUser) return;
+
+    const data = doc.data();
+    roomLocked = data.locked === true;
+
+    updateUserStatus(data.online || 0);
+  });
+}
+
+function listenSelf(roomRef) {
+  if (unsubscribeSelf) unsubscribeSelf();
+
+  unsubscribeSelf = roomRef
+    .collection("participants")
+    .doc(currentUser.id)
+    .onSnapshot(async (doc) => {
+      if (!doc.exists || !currentUser) return;
+
+      const data = doc.data();
+
+      micOn = data.micOn === true;
+      handRaised = data.handRaised === true;
+      allowedToSpeak = data.allowedToSpeak === true || currentUser.role === "admin";
+
+      if (lkRoom && lkRoom.localParticipant) {
+        try {
+          await lkRoom.localParticipant.setMicrophoneEnabled(micOn);
+        } catch (error) {
+          console.warn("Mic sync failed:", error);
+        }
+      }
+
+      updateMicUI();
+      updateRoleBadge();
+    });
+}
+
+function listenParticipants(roomRef) {
+  if (unsubscribeParticipants) unsubscribeParticipants();
+
+  unsubscribeParticipants = roomRef
+    .collection("participants")
+    .orderBy("name")
+    .onSnapshot(async (snapshot) => {
+      const participantsList = getEl("participantsList");
+      const raisedHandsList = getEl("raisedHandsList");
+
+      await roomRef.update({
+        online: snapshot.size
+      });
+
+      if (!participantsList || !raisedHandsList) return;
+
+      participantsList.innerHTML = "";
+      raisedHandsList.innerHTML = "";
+
+      let raisedCount = 0;
+
+      snapshot.forEach((doc) => {
+        const user = doc.data();
+
+        participantsList.innerHTML += `
+          <div class="participant-item">
+            ${user.role === "admin" ? "👑" : "👤"} ${user.name}
+            <span>
+              Mic: ${user.micOn ? "ON 🎙️" : "Muted 🔇"} |
+              Hand: ${user.handRaised ? "Raised ✋" : "Down"}
+            </span>
+          </div>
+        `;
+
+        if (user.handRaised) {
+          raisedCount++;
+
+          raisedHandsList.innerHTML += `
+            <div class="participant-item">
+              ✋ ${user.name}
+              <span>Wants to speak</span>
+              ${
+                currentUser?.role === "admin"
+                  ? `<button onclick="allowSpeakerById('${doc.id}')">🎤 Allow Speak</button>`
+                  : ""
+              }
+            </div>
+          `;
+        }
+      });
+
+      if (snapshot.size === 0) {
+        participantsList.innerHTML = "No participants yet";
+      }
+
+      if (raisedCount === 0) {
+        raisedHandsList.innerHTML = "No raised hands";
+      }
+
+      updateUserStatus(snapshot.size);
+    });
+}
