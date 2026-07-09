@@ -20,6 +20,7 @@ let micOn = false;
 let handRaised = false;
 let allowedToSpeak = false;
 let roomLocked = false;
+let roomClosing = false;
 
 let unsubscribeRoom = null;
 let unsubscribeParticipants = null;
@@ -112,22 +113,39 @@ async function joinRoom() {
     const roomSnap = await roomRef.get();
 
     if (roomSnap.exists) {
-      roomLocked = roomSnap.data().locked === true;
+      const roomData = roomSnap.data();
+      roomLocked = roomData.locked === true;
+
       if (roomLocked && role !== "admin") {
         return showMessage("Room locked আছে। Admin unlock করলে join করা যাবে।");
+      }
+
+      if (roomData.roomActive === false && role !== "admin") {
+        return showMessage("Admin এখনও room start করেননি।");
       }
     } else {
       await roomRef.set({
         name: roomNames[roomKey],
         online: 0,
         locked: false,
+        roomActive: role === "admin",
         createdAt: new Date().toISOString()
       });
+    }
+
+    if (role === "admin") {
+      await roomRef.set({
+        name: roomNames[roomKey],
+        locked: false,
+        roomActive: true,
+        startedAt: new Date().toISOString()
+      }, { merge: true });
     }
 
     micOn = role === "admin";
     allowedToSpeak = role === "admin";
     handRaised = false;
+    roomClosing = false;
 
     currentUser = {
       id: makeUserId(name, role),
@@ -246,10 +264,19 @@ async function connectLiveKit(roomName, participantName, role) {
 function listenRoom(roomRef) {
   if (unsubscribeRoom) unsubscribeRoom();
 
-  unsubscribeRoom = roomRef.onSnapshot((doc) => {
+  unsubscribeRoom = roomRef.onSnapshot(async (doc) => {
     if (!doc.exists || !currentUser) return;
+
     const data = doc.data();
     roomLocked = data.locked === true;
+
+    if (data.roomActive === false && currentUser.role !== "admin" && !roomClosing) {
+      roomClosing = true;
+      showMessage("Admin room বন্ধ করেছেন। আপনি room থেকে বেরিয়ে যাচ্ছেন।");
+      await leaveRoom(true);
+      return;
+    }
+
     updateUserStatus(data.online || 0);
   });
 }
@@ -446,13 +473,49 @@ async function cleanOldEntries() {
   showMessage("Old duplicate entries পরিষ্কার হয়েছে ✅");
 }
 
-async function leaveRoom() {
+async function endMeeting() {
+  if (!isAdmin()) return;
+
+  const roomRef = db.collection("rooms").doc(currentUser.roomId);
+  const snapshot = await roomRef.collection("participants").get();
+  const batch = db.batch();
+
+  snapshot.forEach((doc) => {
+    if (doc.id !== currentUser.id) {
+      batch.delete(doc.ref);
+    }
+  });
+
+  await batch.commit();
+
+  await roomRef.update({
+    roomActive: false,
+    locked: true,
+    online: 0,
+    endedAt: new Date().toISOString()
+  });
+
+  showMessage("Meeting end হয়েছে। সব member বেরিয়ে যাবে।");
+  await leaveRoom(false);
+}
+
+async function leaveRoom(auto = false) {
   if (!currentUser) return;
 
+  const userWasAdmin = currentUser.role === "admin";
   const roomRef = db.collection("rooms").doc(currentUser.roomId);
 
   try {
     await roomRef.collection("participants").doc(currentUser.id).delete();
+
+    if (userWasAdmin && !auto) {
+      await roomRef.update({
+        roomActive: false,
+        locked: true,
+        online: 0,
+        endedAt: new Date().toISOString()
+      });
+    }
 
     if (lkRoom) {
       lkRoom.disconnect();
@@ -493,7 +556,7 @@ function isAdmin() {
 function setupChatUI() {
   if (getEl("chatBox")) return;
 
-  const roomPanel = getEl("roomPanel");
+  const liveRoom = getEl("roomPanel");
 
   const chatHTML = `
     <div id="chatBox" class="list-box" style="margin-top:16px;">
@@ -506,7 +569,7 @@ function setupChatUI() {
     </div>
   `;
 
-  roomPanel.insertAdjacentHTML("beforeend", chatHTML);
+  liveRoom.insertAdjacentHTML("beforeend", chatHTML);
 }
 
 function listenMessages(roomRef) {
@@ -532,12 +595,15 @@ function listenMessages(roomRef) {
         messagesList.innerHTML += `
           <div class="participant-item">
             ${msg.role === "admin" ? "👑" : "👤"} <b>${msg.name}</b>
-            <span>${msg.text}</span>
+            <span>${escapeHTML(msg.text)}</span>
           </div>
         `;
       });
 
       messagesList.scrollTop = messagesList.scrollHeight;
+    }, (error) => {
+      console.error("Message listener error:", error);
+      showMessage("Message permission error. Firestore Rules update করুন।");
     });
 }
 
@@ -561,15 +627,35 @@ async function sendMessage() {
   input.value = "";
 }
 
+function escapeHTML(text) {
+  return String(text).replace(/[&<>"']/g, function (m) {
+    return ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    })[m];
+  });
+}
+
 window.addEventListener("beforeunload", async () => {
   try {
     if (!currentUser) return;
 
-    await db.collection("rooms")
-      .doc(currentUser.roomId)
-      .collection("participants")
-      .doc(currentUser.id)
-      .delete();
+    const userWasAdmin = currentUser.role === "admin";
+    const roomRef = db.collection("rooms").doc(currentUser.roomId);
+
+    await roomRef.collection("participants").doc(currentUser.id).delete();
+
+    if (userWasAdmin) {
+      await roomRef.update({
+        roomActive: false,
+        locked: true,
+        online: 0,
+        endedAt: new Date().toISOString()
+      });
+    }
 
     if (lkRoom) lkRoom.disconnect();
   } catch (err) {
@@ -586,4 +672,5 @@ window.allowSpeaker = allowSpeaker;
 window.allowSpeakerById = allowSpeakerById;
 window.lockRoom = lockRoom;
 window.cleanOldEntries = cleanOldEntries;
+window.endMeeting = endMeeting;
 window.sendMessage = sendMessage;
