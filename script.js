@@ -608,3 +608,154 @@ window.allowSpeaker = allowSpeaker;
 window.allowSpeakerById = allowSpeakerById;
 window.lockRoom = lockRoom;
 window.cleanOldEntries = cleanOldEntries;
+/* ===============================
+   Mahima Ministry Connect V2
+   Part 4/4
+   Raise Hand + Admin Controls
+================================ */
+
+async function raiseHand() {
+  if (!currentUser) {
+    showMessage("আগে Prayer Room-এ Join করুন");
+    return;
+  }
+
+  handRaised = !handRaised;
+
+  await db.collection("rooms")
+    .doc(currentUser.roomId)
+    .collection("participants")
+    .doc(currentUser.id)
+    .update({
+      handRaised
+    });
+
+  showMessage(handRaised ? "আপনার হাত Raise হয়েছে ✋" : "হাত নামানো হয়েছে");
+}
+
+async function muteAll() {
+  if (!isAdmin()) return;
+
+  const roomRef = db.collection("rooms").doc(currentUser.roomId);
+  const snapshot = await roomRef.collection("participants").get();
+  const batch = db.batch();
+
+  snapshot.forEach((doc) => {
+    batch.update(doc.ref, {
+      micOn: false,
+      allowedToSpeak: doc.id === currentUser.id
+    });
+  });
+
+  await batch.commit();
+
+  micOn = true;
+  await setLocalMic(true);
+  updateMicUI();
+
+  showMessage("সবাইকে mute করা হয়েছে 🔇");
+}
+
+async function allowSpeakerById(participantId) {
+  if (!isAdmin()) return;
+
+  const roomRef = db.collection("rooms").doc(currentUser.roomId);
+  const snapshot = await roomRef.collection("participants").get();
+  const batch = db.batch();
+
+  snapshot.forEach((doc) => {
+    const isSelected = doc.id === participantId;
+    const isAdminUser = doc.id === currentUser.id;
+
+    batch.update(doc.ref, {
+      micOn: isSelected || isAdminUser,
+      allowedToSpeak: isSelected || isAdminUser,
+      handRaised: false
+    });
+  });
+
+  await batch.commit();
+
+  showMessage("Speaker অনুমতি দেওয়া হয়েছে 🎤");
+}
+
+function allowSpeaker() {
+  showMessage("Raised Hands list থেকে Allow Speak চাপুন।");
+}
+
+async function lockRoom() {
+  if (!isAdmin()) return;
+
+  const roomRef = db.collection("rooms").doc(currentUser.roomId);
+  const snap = await roomRef.get();
+
+  const locked = snap.exists && snap.data().locked === true;
+  const newLocked = !locked;
+
+  await roomRef.update({
+    locked: newLocked
+  });
+
+  roomLocked = newLocked;
+
+  showMessage(newLocked ? "Room locked হয়েছে 🔒" : "Room unlocked হয়েছে 🔓");
+}
+
+async function cleanOldEntries() {
+  if (!isAdmin()) return;
+
+  const roomRef = db.collection("rooms").doc(currentUser.roomId);
+  const snapshot = await roomRef.collection("participants").get();
+  const batch = db.batch();
+
+  snapshot.forEach((doc) => {
+    if (doc.id !== currentUser.id) {
+      batch.delete(doc.ref);
+    }
+  });
+
+  await batch.commit();
+
+  showMessage("Old duplicate entries পরিষ্কার হয়েছে ✅");
+}
+
+function isAdmin() {
+  if (!currentUser || currentUser.role !== "admin") {
+    showMessage("এই control শুধুমাত্র Admin-এর জন্য।");
+    return false;
+  }
+
+  return true;
+}
+
+window.addEventListener("beforeunload", async () => {
+  try {
+    if (!currentUser) return;
+
+    await db.collection("rooms")
+      .doc(currentUser.roomId)
+      .collection("participants")
+      .doc(currentUser.id)
+      .delete();
+
+    if (lkRoom) {
+      lkRoom.disconnect();
+    }
+  } catch (error) {
+    console.warn("Cleanup failed:", error);
+  }
+});
+
+/* ===============================
+   Expose Functions Globally
+================================ */
+
+window.joinRoom = joinRoom;
+window.raiseHand = raiseHand;
+window.toggleMic = toggleMic;
+window.leaveRoom = leaveRoom;
+window.muteAll = muteAll;
+window.allowSpeaker = allowSpeaker;
+window.allowSpeakerById = allowSpeakerById;
+window.lockRoom = lockRoom;
+window.cleanOldEntries = cleanOldEntries;
