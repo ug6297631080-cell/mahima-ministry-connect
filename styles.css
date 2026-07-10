@@ -1,343 +1,1194 @@
-* {
-  box-sizing: border-box;
+/* =====================================================
+   Mahima Ministry Connect v2.0
+   Production CSS
+   Part 1
+====================================================== */
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
 }
 
-:root {
-  --deep: #020617;
-  --navy: #061a3d;
-  --blue: #0f4c81;
-  --gold: #d4af37;
-  --gold-light: #ffe27a;
-  --white: #ffffff;
-  --muted: #cbd5e1;
-  --glass: rgba(255, 255, 255, 0.09);
-  --danger: #ef4444;
+html{
+scroll-behavior:smooth;
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: Arial, sans-serif;
-  color: var(--white);
-  background:
-    radial-gradient(circle at top left, rgba(255, 210, 80, 0.28), transparent 28%),
-    radial-gradient(circle at top right, rgba(0, 120, 255, 0.35), transparent 35%),
-    linear-gradient(145deg, var(--deep), var(--navy), #0b3f6f);
+body{
+
+font-family:'Poppins','Noto Sans Bengali',sans-serif;
+
+background:#02152f;
+
+color:white;
+
+min-height:100vh;
+
+overflow-x:hidden;
+
 }
 
-.app {
-  width: 100%;
-  max-width: 480px;
-  min-height: 100vh;
-  margin: 0 auto;
-  padding: 18px 18px 95px;
+/* Morning Prayer Background */
+
+.room-background{
+
+position:fixed;
+
+top:0;
+
+left:0;
+
+width:100%;
+
+height:100%;
+
+background:url("morning-room-bg.jpg") center center/cover no-repeat;
+
+z-index:-3;
+
 }
 
-.top-header,
-.join-card,
-.live-room,
-.rooms,
-.info-card {
-  border: 1px solid rgba(255, 226, 122, 0.32);
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 28px;
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 20px 55px rgba(0,0,0,0.35);
-  backdrop-filter: blur(10px);
+/* Blur Layer */
+
+.room-overlay{
+
+position:fixed;
+
+top:0;
+
+left:0;
+
+width:100%;
+
+height:100%;
+
+backdrop-filter:blur(8px);
+
+background:
+
+linear-gradient(
+
+180deg,
+
+rgba(0,15,45,.45),
+
+rgba(0,15,45,.70)
+
+);
+
+z-index:-2;
+
 }
 
-.top-header {
-  text-align: center;
-  padding-top: 32px;
+/* App */
+
+.app-shell{
+
+width:100%;
+
+max-width:480px;
+
+margin:auto;
+
+min-height:100vh;
+
+padding-bottom:120px;
+
 }
 
-.logo-circle {
-  width: 128px;
-  height: 128px;
-  margin: 0 auto 20px;
-  border-radius: 50%;
-  border: 8px solid var(--gold);
-  background: #fff;
-  color: #d71920;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 35px rgba(255, 226, 122, 0.55);
+/* Header */
+
+.app-header{
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+padding:18px;
+
 }
 
-.cross {
-  font-size: 54px;
-  font-weight: bold;
-  line-height: 1;
+.brand-wrap{
+
+display:flex;
+
+align-items:center;
+
+gap:12px;
+
 }
 
-.grace {
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: 1px;
+.brand-logo{
+
+width:62px;
+
+height:62px;
+
+border-radius:50%;
+
+background:white;
+
+padding:5px;
+
+box-shadow:
+
+0 0 25px rgba(255,215,0,.35);
+
 }
 
-h1 {
-  margin: 0;
-  font-size: 42px;
-  line-height: 1.15;
-  letter-spacing: 3px;
-  font-weight: 900;
+.brand-text h1{
+
+font-size:20px;
+
+font-weight:700;
+
+color:#FFD54F;
+
 }
 
-.top-header p {
-  color: var(--gold-light);
-  text-transform: uppercase;
-  letter-spacing: 5px;
-  font-size: 16px;
-  margin: 18px 0;
+.brand-text p{
+
+font-size:12px;
+
+opacity:.9;
+
 }
 
-.live-badge {
-  display: inline-block;
-  padding: 12px 24px;
-  border-radius: 999px;
-  color: #bbf7d0;
-  background: rgba(16, 185, 129, 0.18);
-  border: 1px solid rgba(16, 185, 129, 0.55);
-  font-weight: bold;
+.menu-button{
+
+background:rgba(255,255,255,.12);
+
+border:none;
+
+color:white;
+
+width:46px;
+
+height:46px;
+
+border-radius:15px;
+
+font-size:22px;
+
+backdrop-filter:blur(15px);
+
 }
 
-.join-card h2,
-.rooms h2,
-.info-card h2,
-.live-room h2 {
-  color: var(--gold-light);
-  margin-top: 0;
-  font-size: 28px;
+/* Glass Card */
+
+.app-card,
+
+.glass-card{
+
+background:rgba(255,255,255,.12);
+
+backdrop-filter:blur(18px);
+
+border:1px solid rgba(255,255,255,.18);
+
+border-radius:24px;
+
+margin:16px;
+
+padding:20px;
+
+box-shadow:
+
+0 15px 45px rgba(0,0,0,.35);
+
+}
+
+/* Join */
+
+.section-heading{
+
+display:flex;
+
+align-items:center;
+
+gap:12px;
+
+margin-bottom:18px;
+
+}
+
+.section-icon{
+
+font-size:28px;
+
+}
+
+.section-heading h2{
+
+font-size:22px;
+
+color:#FFD54F;
+
+}
+
+.section-heading p{
+
+font-size:13px;
+
+opacity:.8;
+
+}
+
+.form-group{
+
+margin-bottom:16px;
+
+}
+
+.form-group label{
+
+display:block;
+
+margin-bottom:8px;
+
+font-size:13px;
+
+font-weight:600;
+
 }
 
 input,
-select {
-  width: 100%;
-  padding: 18px 20px;
-  margin-bottom: 14px;
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 18px;
-  background: rgba(255,255,255,0.16);
-  color: white;
-  font-size: 18px;
-  outline: none;
+
+select,
+
+textarea{
+
+width:100%;
+
+padding:15px;
+
+border:none;
+
+outline:none;
+
+border-radius:14px;
+
+background:rgba(255,255,255,.14);
+
+color:white;
+
+font-size:15px;
+
 }
 
-input::placeholder {
-  color: #e5e7eb;
+input::placeholder,
+
+textarea::placeholder{
+
+color:#ddd;
+
 }
 
-select option {
-  color: #111;
+.primary-button{
+
+width:100%;
+
+padding:16px;
+
+border:none;
+
+border-radius:18px;
+
+background:
+
+linear-gradient(
+
+90deg,
+
+#FFD54F,
+
+#FFB300
+
+);
+
+color:#00254b;
+
+font-weight:700;
+
+font-size:17px;
+
+cursor:pointer;
+
+transition:.3s;
+
 }
 
-button {
-  border: none;
-  border-radius: 18px;
-  padding: 16px 18px;
-  font-size: 17px;
-  font-weight: 800;
-  cursor: pointer;
-  background: linear-gradient(135deg, #facc15, #d4af37);
-  color: #06111f;
-  box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+.primary-button:active{
+
+transform:scale(.97);
+
 }
 
-.primary-btn {
-  width: 100%;
-  margin-top: 4px;
-  font-size: 18px;
-  padding: 18px;
+/* Room Hero */
+
+.room-hero{
+
+padding:18px;
+
 }
 
-.hidden {
-  display: none !important;
+.room-title-wrap{
+
+display:flex;
+
+align-items:flex-start;
+
+gap:14px;
+
 }
 
-.room-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+.sun-icon{
+
+font-size:38px;
+
 }
 
-#userStatus {
-  color: var(--muted);
-  line-height: 1.6;
+.room-title-wrap h2{
+
+font-size:24px;
+
+color:#FFD54F;
+
 }
 
-.role-badge {
-  white-space: nowrap;
-  padding: 12px 16px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,226,122,0.45);
-  background: rgba(0,0,0,0.25);
-  color: var(--gold-light);
-  font-weight: bold;
+.room-verse{
+
+margin-top:6px;
+
+font-size:14px;
+
+line-height:1.5;
+
 }
 
-.mic-circle {
-  width: 150px;
-  height: 150px;
-  margin: 28px auto;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 56px;
-  background: radial-gradient(circle, rgba(255,255,255,0.20), rgba(0,0,0,0.25));
-  box-shadow: 0 0 45px rgba(255,255,255,0.18);
+.verse-reference{
+
+display:block;
+
+margin-top:6px;
+
+font-size:13px;
+
+color:#FFD54F;
+
 }
 
-.mic-circle.muted {
-  filter: grayscale(1);
-  opacity: 0.75;
+/* Live */
+
+.live-box{
+
+margin-top:18px;
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
 }
 
-.room-actions,
-.admin-box {
-  display: grid;
-  gap: 12px;
+.live-label{
+
+display:flex;
+
+align-items:center;
+
+gap:8px;
+
+font-weight:700;
+
 }
 
-.room-actions .danger {
-  background: linear-gradient(135deg, #ef4444, #b91c1c);
-  color: white;
+.live-dot{
+
+width:12px;
+
+height:12px;
+
+background:red;
+
+border-radius:50%;
+
+animation:pulse 1s infinite;
+
 }
 
-.live-lists {
-  margin-top: 18px;
-  display: grid;
-  gap: 14px;
+.meeting-timer{
+
+font-size:18px;
+
+font-weight:bold;
+
+color:#FFD54F;
+
 }
 
-.list-box {
-  padding: 16px;
-  border-radius: 20px;
-  background: rgba(0,0,0,0.18);
-  border: 1px solid rgba(255, 226, 122, 0.25);
+@keyframes pulse{
+
+0%{transform:scale(.9);opacity:.5;}
+
+50%{transform:scale(1.2);opacity:1;}
+
+100%{transform:scale(.9);opacity:.5;}
+
+}/* ===========================================
+   STATUS CARD
+=========================================== */
+
+.room-status-card{
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+margin:18px;
+
+padding:18px;
+
 }
 
-.list-box h3 {
-  color: var(--gold-light);
-  margin: 0 0 12px;
-  font-size: 20px;
+.status-item{
+
+flex:1;
+
+text-align:center;
+
 }
 
-.participant-item {
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 14px;
-  background: rgba(2, 6, 23, 0.45);
-  color: #fff;
-  font-size: 16px;
+.status-item small{
+
+display:block;
+
+font-size:12px;
+
+opacity:.8;
+
+margin-bottom:6px;
+
 }
 
-.participant-item span {
-  display: block;
-  color: var(--muted);
-  font-size: 13px;
-  margin-top: 5px;
+.status-item strong{
+
+font-size:18px;
+
+color:#FFD54F;
+
 }
 
-.participant-item button {
-  margin-top: 10px;
-  width: 100%;
-  padding: 10px;
-  font-size: 14px;
+.status-icon{
+
+display:block;
+
+font-size:24px;
+
+margin-bottom:8px;
+
 }
 
-.admin-box {
-  margin-top: 22px;
-  padding: 18px;
-  border-radius: 22px;
-  border: 1px solid rgba(255,226,122,0.35);
-  background: rgba(0,0,0,0.2);
+.status-divider{
+
+width:1px;
+
+height:48px;
+
+background:rgba(255,255,255,.15);
+
 }
 
-.admin-box h3 {
-  color: var(--gold-light);
-  margin-top: 0;
-  font-size: 24px;
+/* ===========================================
+   ANNOUNCEMENT
+=========================================== */
+
+.announcement-card{
+
+display:flex;
+
+gap:15px;
+
+align-items:flex-start;
+
+margin:18px;
+
+padding:18px;
+
+border-radius:20px;
+
+background:
+
+linear-gradient(
+
+90deg,
+
+rgba(255,193,7,.25),
+
+rgba(255,255,255,.12)
+
+);
+
+backdrop-filter:blur(20px);
+
 }
 
-.room-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+.announcement-icon{
+
+font-size:34px;
+
 }
 
-.room-card {
-  min-height: 140px;
-  border-radius: 22px;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  font-size: 42px;
-  background: rgba(255,255,255,0.10);
-  border: 1px solid rgba(255,226,122,0.25);
+.announcement-heading{
+
+font-size:17px;
+
+font-weight:bold;
+
+color:#FFD54F;
+
+margin-bottom:6px;
+
 }
 
-.room-card span {
-  display: block;
-  font-size: 17px;
-  font-weight: 800;
-  margin-top: 8px;
+#announcementText{
+
+font-size:14px;
+
+line-height:1.6;
+
 }
 
-.info-card p {
-  color: var(--muted);
-  font-size: 18px;
-  line-height: 1.6;
+#announcementMeta{
+
+font-size:12px;
+
+opacity:.8;
+
+margin-top:6px;
+
+display:block;
+
 }
 
-.bottom-nav {
-  position: fixed;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  width: min(480px, 100%);
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
-  padding: 10px 12px;
-  border-radius: 28px 28px 0 0;
-  background: rgba(2, 6, 23, 0.96);
-  border: 1px solid rgba(255,226,122,0.25);
-  box-shadow: 0 -12px 35px rgba(0,0,0,0.35);
+/* ===========================================
+   PARTICIPANTS
+=========================================== */
+
+.participants-list,
+
+.raised-hands-list,
+
+.messages-list{
+
+display:flex;
+
+flex-direction:column;
+
+gap:10px;
+
+max-height:280px;
+
+overflow:auto;
+
+padding-top:10px;
+
 }
 
-.bottom-nav div {
-  text-align: center;
-  color: var(--muted);
-  font-size: 24px;
-  font-weight: bold;
+.participant-item{
+
+background:rgba(255,255,255,.10);
+
+padding:14px;
+
+border-radius:16px;
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+font-size:14px;
+
+backdrop-filter:blur(10px);
+
 }
 
-.bottom-nav span {
-  display: block;
-  font-size: 11px;
-  margin-top: 3px;
+.participant-item span{
+
+display:block;
+
+font-size:12px;
+
+opacity:.8;
+
+margin-top:4px;
+
 }
 
-.bottom-nav .active {
-  color: var(--gold-light);
+/* ===========================================
+   CHAT
+=========================================== */
+
+.message-compose{
+
+display:flex;
+
+gap:10px;
+
+margin-top:15px;
+
 }
 
-@media (max-width: 380px) {
-  h1 {
-    font-size: 34px;
-  }
+.message-compose input{
 
-  .app {
-    padding: 14px 14px 95px;
-  }
+flex:1;
 
-  .logo-circle {
-    width: 108px;
-    height: 108px;
-  }
 }
+
+.message-compose button{
+
+border:none;
+
+border-radius:14px;
+
+padding:0 18px;
+
+background:#FFD54F;
+
+font-weight:bold;
+
+color:#012B5A;
+
+}
+
+/* ===========================================
+   ADMIN PANEL
+=========================================== */
+
+.admin-actions{
+
+display:grid;
+
+grid-template-columns:1fr 1fr;
+
+gap:12px;
+
+margin-top:18px;
+
+}
+
+.admin-actions button{
+
+padding:15px;
+
+border:none;
+
+border-radius:16px;
+
+background:#1b4f9f;
+
+color:white;
+
+font-weight:600;
+
+}
+
+.danger-button{
+
+background:#d32f2f !important;
+
+}
+
+.announcement-form{
+
+margin-top:20px;
+
+}
+
+.announcement-form textarea{
+
+margin-top:10px;
+
+margin-bottom:12px;
+
+height:100px;
+
+resize:none;
+
+}
+
+.announcement-button{
+
+width:100%;
+
+padding:16px;
+
+border:none;
+
+border-radius:16px;
+
+background:#FFD54F;
+
+color:#012B5A;
+
+font-weight:bold;
+
+}
+
+/* ===========================================
+   CONTROL BUTTONS
+=========================================== */
+
+.room-controls{
+
+position:fixed;
+
+bottom:20px;
+
+left:50%;
+
+transform:translateX(-50%);
+
+width:95%;
+
+max-width:470px;
+
+display:flex;
+
+justify-content:space-around;
+
+background:rgba(0,18,50,.70);
+
+backdrop-filter:blur(20px);
+
+padding:14px;
+
+border-radius:24px;
+
+z-index:999;
+
+}
+
+.control-button{
+
+background:none;
+
+border:none;
+
+color:white;
+
+display:flex;
+
+flex-direction:column;
+
+align-items:center;
+
+gap:8px;
+
+font-size:12px;
+
+}
+
+.control-circle{
+
+width:58px;
+
+height:58px;
+
+border-radius:50%;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+font-size:24px;
+
+background:rgba(255,255,255,.15);
+
+box-shadow:
+
+0 0 20px rgba(255,255,255,.15);
+
+}
+
+.leave-circle{
+
+background:#d32f2f;
+
+}
+
+.mic-circle{
+
+animation:micGlow 2s infinite;
+
+}
+
+@keyframes micGlow{
+
+0%{
+
+box-shadow:0 0 10px #2196F3;
+
+}
+
+50%{
+
+box-shadow:0 0 28px #64B5F6;
+
+}
+
+100%{
+
+box-shadow:0 0 10px #2196F3;
+
+}
+
+}
+
+/* ===========================================
+   BOTTOM NAV
+=========================================== */
+
+.bottom-navigation{
+
+display:none;
+
+}
+
+/* ===========================================
+   MOBILE
+=========================================== */
+
+@media(max-width:480px){
+
+.app-card,
+
+.glass-card{
+
+margin:12px;
+
+padding:16px;
+
+}
+
+.room-title-wrap h2{
+
+font-size:21px;
+
+}
+
+.primary-button{
+
+font-size:16px;
+
+}
+
+}/* ==========================================
+   MAHIMA MINISTRY CONNECT
+   CSS FINAL PART 3
+========================================== */
+
+/* Smooth Fade */
+
+.hidden{
+display:none !important;
+}
+
+.fade-in{
+
+animation:fadeIn .45s ease;
+
+}
+
+@keyframes fadeIn{
+
+from{
+
+opacity:0;
+
+transform:translateY(18px);
+
+}
+
+to{
+
+opacity:1;
+
+transform:translateY(0);
+
+}
+
+}
+
+/* Morning Prayer Background */
+
+.room-background{
+
+position:fixed;
+
+top:0;
+
+left:0;
+
+width:100%;
+
+height:100%;
+
+background-image:url("morning-room-bg.jpg");
+
+background-repeat:no-repeat;
+
+background-size:cover;
+
+background-position:center center;
+
+z-index:-3;
+
+}
+
+/* Dark Overlay */
+
+.room-overlay{
+
+position:fixed;
+
+top:0;
+
+left:0;
+
+width:100%;
+
+height:100%;
+
+background:
+
+linear-gradient(
+
+180deg,
+
+rgba(2,15,40,.35),
+
+rgba(2,15,40,.52)
+
+);
+
+backdrop-filter:blur(4px);
+
+z-index:-2;
+
+}
+
+/* Logo */
+
+.brand-logo{
+
+background:white;
+
+padding:6px;
+
+border-radius:50%;
+
+box-shadow:
+
+0 0 35px rgba(255,215,0,.45);
+
+}
+
+/* Cards */
+
+.glass-card,
+
+.app-card{
+
+border:
+
+1px solid rgba(255,255,255,.15);
+
+box-shadow:
+
+0 20px 55px rgba(0,0,0,.30);
+
+}
+
+/* Buttons */
+
+button{
+
+transition:.25s;
+
+cursor:pointer;
+
+}
+
+button:hover{
+
+transform:translateY(-2px);
+
+}
+
+button:active{
+
+transform:scale(.96);
+
+}
+
+/* Scroll */
+
+::-webkit-scrollbar{
+
+width:5px;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+background:#FFD54F;
+
+border-radius:50px;
+
+}
+
+/* Inputs */
+
+input:focus,
+
+textarea:focus,
+
+select:focus{
+
+outline:2px solid #FFD54F;
+
+}
+
+/* Live */
+
+.live-dot{
+
+box-shadow:
+
+0 0 18px red;
+
+}
+
+/* Speaking */
+
+.speaking{
+
+border:
+
+2px solid #4CAF50 !important;
+
+box-shadow:
+
+0 0 22px #4CAF50;
+
+}
+
+/* Online */
+
+.online{
+
+color:#6BFF95;
+
+}
+
+/* Announcement */
+
+.announcement-card{
+
+border-left:
+
+5px solid #FFD54F;
+
+}
+
+/* Chat */
+
+.messages-list{
+
+padding-bottom:15px;
+
+}
+
+/* Message Bubble */
+
+.message{
+
+padding:12px;
+
+border-radius:14px;
+
+margin-bottom:10px;
+
+}
+
+.message.admin{
+
+background:
+
+rgba(255,193,7,.18);
+
+}
+
+.message.member{
+
+background:
+
+rgba(255,255,255,.10);
+
+}
+
+/* Footer Space */
+
+.room-panel{
+
+padding-bottom:120px;
+
+}
+
+/* Responsive */
+
+img{
+
+max-width:100%;
+
+display:block;
+
+}
+
+textarea{
+
+font-family:inherit;
+
+}
+
+/* APK */
+
+body{
+
+-webkit-tap-highlight-color:transparent;
+
+user-select:none;
+
+}
+
+/* Safe Area */
+
+.app-shell{
+
+padding-bottom:
+
+calc(90px + env(safe-area-inset-bottom));
+
+}
+
+/* End */
