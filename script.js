@@ -1478,4 +1478,479 @@ function listenSelf(roomRef) {
           );
         }
       );
+}function listenMessages(roomRef) {
+  if (unsubscribeMessages) {
+    unsubscribeMessages();
+  }
+
+  unsubscribeMessages =
+    roomRef
+      .collection("messages")
+      .orderBy("createdAt", "asc")
+      .limitToLast(100)
+      .onSnapshot(
+        (snapshot) => {
+          const messagesList =
+            getEl("messagesList");
+
+          if (!messagesList) {
+            return;
+          }
+
+          messagesList.innerHTML = "";
+
+          if (snapshot.empty) {
+            messagesList.textContent =
+              "No messages yet";
+            return;
+          }
+
+          snapshot.forEach(
+            (documentSnapshot) => {
+              const message =
+                documentSnapshot.data();
+
+              const safeName =
+                escapeHTML(
+                  message.name ||
+                    "Member"
+                );
+
+              const safeText =
+                escapeHTML(
+                  message.text ||
+                    ""
+                );
+
+              const messageClass =
+                message.role === "admin"
+                  ? "admin"
+                  : "member";
+
+              const roleIcon =
+                message.role === "admin"
+                  ? "👑"
+                  : "👤";
+
+              messagesList
+                .insertAdjacentHTML(
+                  "beforeend",
+                  `
+                    <div class="message ${messageClass}">
+                      <strong>
+                        ${roleIcon}
+                        ${safeName}
+                      </strong>
+
+                      <div>
+                        ${safeText}
+                      </div>
+                    </div>
+                  `
+                );
+            }
+          );
+
+          messagesList.scrollTop =
+            messagesList.scrollHeight;
+        },
+
+        (error) => {
+          console.error(
+            "Messages listener error:",
+            error
+          );
+
+          showMessage(
+            "Messaging permission error. Firestore Rules check করুন।"
+          );
+        }
+      );
+}
+
+async function sendMessage() {
+  try {
+    if (!currentUser) {
+      showMessage(
+        "আগে Prayer Room-এ Join করুন।"
+      );
+      return;
+    }
+
+    const input =
+      getEl("messageInput");
+
+    const text =
+      input?.value.trim();
+
+    if (!text) {
+      return;
+    }
+
+    if (text.length > 500) {
+      showMessage(
+        "Message সর্বোচ্চ 500 characters হতে পারবে।"
+      );
+      return;
+    }
+
+    await db
+      .collection("rooms")
+      .doc(currentUser.roomId)
+      .collection("messages")
+      .add({
+        name:
+          currentUser.name,
+
+        role:
+          currentUser.role,
+
+        text,
+
+        dateKey:
+          getIndiaDateKey(),
+
+        createdAt:
+          firebase.firestore
+            .FieldValue
+            .serverTimestamp()
+      });
+
+    input.value = "";
+
+  } catch (error) {
+    console.error(
+      "Send message error:",
+      error
+    );
+
+    showMessage(
+      `Message পাঠানো যায়নি: ${error.message}`
+    );
+  }
+}
+
+async function sendAnnouncement() {
+  try {
+    if (!isAdmin()) {
+      return;
+    }
+
+    const input =
+      getEl("announcementInput");
+
+    const text =
+      input?.value.trim();
+
+    if (!text) {
+      showMessage(
+        "Announcement লিখুন।"
+      );
+      return;
+    }
+
+    if (text.length > 500) {
+      showMessage(
+        "Announcement সর্বোচ্চ 500 characters হতে পারবে।"
+      );
+      return;
+    }
+
+    await db
+      .collection("rooms")
+      .doc(currentUser.roomId)
+      .set(
+        {
+          announcement: {
+            text,
+
+            author:
+              currentUser.name,
+
+            dateKey:
+              getIndiaDateKey(),
+
+            createdAt:
+              new Date()
+                .toISOString()
+          }
+        },
+        {
+          merge: true
+        }
+      );
+
+    input.value = "";
+
+    showMessage(
+      "Announcement সবার কাছে পাঠানো হয়েছে 📢"
+    );
+
+  } catch (error) {
+    console.error(
+      "Announcement error:",
+      error
+    );
+
+    showMessage(
+      `Announcement পাঠানো যায়নি: ${error.message}`
+    );
+  }
+}
+
+async function clearAnnouncement() {
+  if (!isAdmin()) {
+    return;
+  }
+
+  try {
+    await db
+      .collection("rooms")
+      .doc(currentUser.roomId)
+      .set(
+        {
+          announcement: null
+        },
+        {
+          merge: true
+        }
+      );
+
+    showMessage(
+      "Announcement clear হয়েছে।"
+    );
+
+  } catch (error) {
+    console.error(
+      "Clear announcement error:",
+      error
+    );
+
+    showMessage(
+      error.message
+    );
+  }
+}async function raiseHand() {
+  try {
+    if (!currentUser) {
+      showMessage(
+        "আগে Prayer Room-এ Join করুন।"
+      );
+      return;
+    }
+
+    handRaised = !handRaised;
+
+    await db
+      .collection("rooms")
+      .doc(currentUser.roomId)
+      .collection("participants")
+      .doc(currentUser.id)
+      .update({
+        handRaised
+      });
+
+    updateHandUI();
+
+    showMessage(
+      handRaised
+        ? "আপনার হাত Raise হয়েছে ✋"
+        : "হাত নামানো হয়েছে।"
+    );
+
+  } catch (error) {
+    console.error(
+      "Raise hand error:",
+      error
+    );
+
+    showMessage(
+      error.message
+    );
+  }
+}
+
+async function toggleMic() {
+  try {
+    if (!currentUser) {
+      showMessage(
+        "আগে Prayer Room-এ Join করুন।"
+      );
+      return;
+    }
+
+    if (!allowedToSpeak) {
+      showMessage(
+        "Admin অনুমতি না দিলে Mic চালু হবে না।"
+      );
+      return;
+    }
+
+    const newState =
+      !micOn;
+
+    if (
+      lkRoom &&
+      lkRoom.localParticipant
+    ) {
+      await lkRoom
+        .localParticipant
+        .setMicrophoneEnabled(
+          newState
+        );
+    }
+
+    micOn = newState;
+
+    await db
+      .collection("rooms")
+      .doc(currentUser.roomId)
+      .collection("participants")
+      .doc(currentUser.id)
+      .update({
+        micOn
+      });
+
+    updateMicUI();
+
+  } catch (error) {
+    console.error(
+      "Mic error:",
+      error
+    );
+
+    showMessage(
+      "Microphone permission Allow করুন।"
+    );
+  }
+}
+
+function allowSpeaker() {
+  showMessage(
+    "Raised Hands তালিকা থেকে Allow Speak চাপুন।"
+  );
+}
+
+async function allowSpeakerById(
+  participantId
+) {
+  if (!isAdmin()) {
+    return;
+  }
+
+  try {
+    const roomRef =
+      db
+        .collection("rooms")
+        .doc(currentUser.roomId);
+
+    const snapshot =
+      await roomRef
+        .collection("participants")
+        .get();
+
+    const batch =
+      db.batch();
+
+    snapshot.forEach(
+      (documentSnapshot) => {
+        const isSelected =
+          documentSnapshot.id ===
+          participantId;
+
+        const isAdminUser =
+          documentSnapshot.id ===
+          currentUser.id;
+
+        batch.update(
+          documentSnapshot.ref,
+          {
+            micOn:
+              isSelected ||
+              isAdminUser,
+
+            allowedToSpeak:
+              isSelected ||
+              isAdminUser,
+
+            handRaised: false
+          }
+        );
+      }
+    );
+
+    await batch.commit();
+
+    showMessage(
+      "Speaker permission দেওয়া হয়েছে 🎤"
+    );
+
+  } catch (error) {
+    console.error(
+      "Allow speaker error:",
+      error
+    );
+
+    showMessage(
+      error.message
+    );
+  }
+}
+
+async function muteAll() {
+  if (!isAdmin()) {
+    return;
+  }
+
+  try {
+    const roomRef =
+      db
+        .collection("rooms")
+        .doc(currentUser.roomId);
+
+    const snapshot =
+      await roomRef
+        .collection("participants")
+        .get();
+
+    const batch =
+      db.batch();
+
+    snapshot.forEach(
+      (documentSnapshot) => {
+        const isAdminUser =
+          documentSnapshot.id ===
+          currentUser.id;
+
+        batch.update(
+          documentSnapshot.ref,
+          {
+            micOn:
+              isAdminUser,
+
+            allowedToSpeak:
+              isAdminUser,
+
+            handRaised: false
+          }
+        );
+      }
+    );
+
+    await batch.commit();
+
+    showMessage(
+      "Admin ছাড়া সবাইকে mute করা হয়েছে 🔇"
+    );
+
+  } catch (error) {
+    console.error(
+      "Mute all error:",
+      error
+    );
+
+    showMessage(
+      error.message
+    );
+  }
 }
