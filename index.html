@@ -2,111 +2,595 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
+
+  <meta name="theme-color" content="#02152f" />
+
   <title>Mahima Ministry Connect</title>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
 
-<div class="app">
-  <header class="top-header">
-    <div class="logo-circle">
-      <div class="cross">✝</div>
-      <div class="grace">GRACE</div>
-    </div>
-    <h1>MAHIMA MINISTRY</h1>
-    <p>Audio Prayer Platform</p>
-    <div class="live-badge">● Live Prayer Connect</div>
-  </header>
+  <div class="app-shell">
 
-  <section class="join-card">
-    <h2>Join Prayer Room</h2>
-    <input id="nameInput" placeholder="আপনার নাম লিখুন" />
+    <!-- HEADER -->
 
-    <select id="roleInput">
-      <option value="member">Member</option>
-      <option value="admin">Admin</option>
-    </select>
+    <header class="app-header">
 
-    <input id="adminKeyInput" type="password" placeholder="Admin Secret Key" />
+      <div class="brand-wrap">
 
-    <select id="roomInput">
-      <option value="morning-prayer">Morning Prayer Room</option>
-      <option value="sunday-service">Sunday Service Room</option>
-      <option value="bible-study">Bible Study Room</option>
-      <option value="prayer-request">Prayer Request Room</option>
-    </select>
+        <img
+          src="logo.png"
+          alt="Mahima Ministry Logo"
+          class="brand-logo"
+        />
 
-    <button class="primary-btn" onclick="joinRoom()">🎧 Join Prayer Room</button>
-  </section>
+        <div class="brand-text">
+          <h1>MAHIMA MINISTRY</h1>
+          <p>Audio Prayer Meeting Platform</p>
+        </div>
 
-  <section id="roomPanel" class="live-room hidden">
-    <div class="room-top">
-      <div>
-        <h2 id="roomTitle">Prayer Room</h2>
-        <p id="userStatus">Not connected</p>
-      </div>
-      <span id="roleBadge" class="role-badge">Member</span>
-    </div>
-
-    <div class="mic-circle" onclick="toggleMic()">🎙️</div>
-
-    <div class="room-actions">
-      <button onclick="raiseHand()">✋ Raise Hand</button>
-      <button onclick="toggleMic()">Mic On/Off</button>
-      <button class="danger" onclick="leaveRoom()">Leave</button>
-    </div>
-
-    <div class="live-lists">
-      <div class="list-box">
-        <h3>👥 Live Participants</h3>
-        <div id="participantsList">No participants yet</div>
       </div>
 
-      <div class="list-box">
-        <h3>✋ Raised Hands</h3>
-        <div id="raisedHandsList">No raised hands</div>
+      <button
+        type="button"
+        class="menu-button"
+        aria-label="Menu"
+      >
+        ☰
+      </button>
+
+    </header>
+
+
+    <!-- JOIN SECTION -->
+
+    <section
+      id="joinSection"
+      class="join-section app-card"
+    >
+
+      <div class="section-heading">
+
+        <span class="section-icon">🎧</span>
+
+        <div>
+          <h2>Join Prayer Room</h2>
+          <p>আপনার নাম ও Prayer Room নির্বাচন করুন</p>
+        </div>
+
       </div>
-    </div>
 
-    <div id="adminPanel" class="admin-box hidden">
-      <h3>👑 Admin Dashboard</h3>
-      <button onclick="muteAll()">🔇 Mute All</button>
-      <button onclick="allowSpeaker()">🎤 Allow Speaker</button>
-      <button onclick="lockRoom()">🔒 Lock Room</button>
-      <button onclick="cleanOldEntries()">🧹 Clean Old Entries</button>
-    </div>
-  </section>
+      <div class="form-group">
+        <label for="nameInput">আপনার নাম</label>
 
-  <section class="rooms">
-    <h2>Available Rooms</h2>
-    <div class="room-grid">
-      <div class="room-card">🙏<span>Morning Prayer</span></div>
-      <div class="room-card">⛪<span>Sunday Service</span></div>
-      <div class="room-card">📖<span>Bible Study</span></div>
-      <div class="room-card">❤️<span>Prayer Request</span></div>
-    </div>
-  </section>
+        <input
+          id="nameInput"
+          type="text"
+          placeholder="আপনার নাম লিখুন"
+          autocomplete="name"
+        />
+      </div>
 
-  <section class="info-card">
-    <h2>🔊 Room Info</h2>
-    <p>Join our prayer rooms and be blessed.</p>
-    <p>Let’s connect in faith and prayer together.</p>
-  </section>
+      <div class="form-group">
+        <label for="roleInput">Join as</label>
 
-  <nav class="bottom-nav">
-    <div class="active">🏠<span>Home</span></div>
-    <div>👥<span>Rooms</span></div>
-    <div>🎧<span>Join</span></div>
-    <div>❤️<span>Prayer</span></div>
-    <div>👤<span>Profile</span></div>
-  </nav>
-</div>
+        <select id="roleInput">
+          <option value="member">Member</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
-<script src="script.js"></script>
+      <div class="form-group">
+        <label for="adminKeyInput">
+          Admin Secret Key
+        </label>
+
+        <input
+          id="adminKeyInput"
+          type="password"
+          placeholder="শুধু Admin-এর জন্য"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="roomInput">Prayer Room</label>
+
+        <select id="roomInput">
+          <option value="morning-prayer">
+            Morning Prayer Room
+          </option>
+
+          <option value="sunday-service">
+            Sunday Service Room
+          </option>
+
+          <option value="bible-study">
+            Bible Study Room
+          </option>
+
+          <option value="prayer-request">
+            Prayer Request Room
+          </option>
+        </select>
+      </div>
+
+      <button
+        type="button"
+        class="primary-button"
+        onclick="joinRoom()"
+      >
+        🎧 Join Prayer Room
+      </button>
+
+    </section>
+
+
+    <!-- AVAILABLE ROOMS -->
+
+    <section
+      id="availableRooms"
+      class="available-rooms app-card"
+    >
+
+      <div class="section-heading">
+
+        <span class="section-icon">🏠</span>
+
+        <div>
+          <h2>Prayer Rooms</h2>
+          <p>Available Ministry Prayer Rooms</p>
+        </div>
+
+      </div>
+
+      <div class="room-list">
+
+        <div class="participant-item">
+          <div>
+            <strong>☀️ Morning Prayer Room</strong>
+            <span>Start your day with God</span>
+          </div>
+        </div>
+
+        <div class="participant-item">
+          <div>
+            <strong>✝️ Sunday Service Room</strong>
+            <span>Worship together</span>
+          </div>
+        </div>
+
+        <div class="participant-item">
+          <div>
+            <strong>📖 Bible Study Room</strong>
+            <span>Grow in God’s Word</span>
+          </div>
+        </div>
+
+        <div class="participant-item">
+          <div>
+            <strong>❤️ Prayer Request Room</strong>
+            <span>Share and pray together</span>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- PRAYER ROOM -->
+
+    <main
+      id="roomPanel"
+      class="room-panel hidden"
+    >
+
+      <div class="room-background"></div>
+      <div class="room-overlay"></div>
+
+
+      <!-- ROOM HERO -->
+
+      <section class="room-hero glass-card">
+
+        <div class="room-title-wrap">
+
+          <span class="sun-icon">☀️</span>
+
+          <div>
+            <h2 id="roomTitle">
+              Morning Prayer Room
+            </h2>
+
+            <p class="room-verse">
+              “This is the day the Lord has made;
+              we will rejoice and be glad in it.”
+            </p>
+
+            <span class="verse-reference">
+              — Psalm 118:24
+            </span>
+          </div>
+
+        </div>
+
+        <div class="live-box">
+
+          <div class="live-label">
+            <span class="live-dot"></span>
+            LIVE
+          </div>
+
+          <div
+            id="meetingTimer"
+            class="meeting-timer"
+          >
+            00:00:00
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ROOM STATUS -->
+
+      <section class="room-status-card glass-card">
+
+        <div class="status-item">
+          <span class="status-icon">👥</span>
+          <small>Online</small>
+          <strong id="onlineCount">0</strong>
+        </div>
+
+        <div class="status-divider"></div>
+
+        <div class="status-item">
+          <span class="status-icon">✋</span>
+          <small>Raised Hands</small>
+          <strong id="raisedHandsCount">0</strong>
+        </div>
+
+        <div class="status-divider"></div>
+
+        <div class="status-item">
+          <span class="status-icon">🔐</span>
+          <small>Room</small>
+          <strong id="roomLockStatus">
+            Unlocked
+          </strong>
+        </div>
+
+      </section>
+
+
+      <!-- ANNOUNCEMENT -->
+
+      <section
+        id="announcementBox"
+        class="announcement-card"
+      >
+
+        <div class="announcement-icon">
+          📢
+        </div>
+
+        <div class="announcement-content">
+
+          <div class="announcement-heading">
+            Live Announcement
+          </div>
+
+          <p id="announcementText">
+            এখনো কোনো announcement নেই।
+          </p>
+
+          <span id="announcementMeta">
+            — Admin
+          </span>
+
+        </div>
+
+      </section>
+
+
+      <!-- CURRENT USER STATUS -->
+
+      <section class="user-status-card glass-card">
+
+        <div class="status-item">
+          <small>You are in</small>
+
+          <strong id="currentRoomName">
+            Prayer Room
+          </strong>
+        </div>
+
+        <div class="status-item">
+          <small>Mic</small>
+
+          <strong id="currentMicStatus">
+            Muted 🔇
+          </strong>
+        </div>
+
+        <div class="status-item">
+          <small>Hand</small>
+
+          <strong id="currentHandStatus">
+            Down
+          </strong>
+        </div>
+
+        <div class="status-item">
+          <small>Role</small>
+
+          <strong id="roleBadge">
+            Member
+          </strong>
+        </div>
+
+      </section>
+
+      <p id="userStatus" class="hidden">
+        Not connected
+      </p>
+
+
+      <!-- PARTICIPANTS -->
+
+      <section class="participants-card glass-card">
+
+        <div class="section-heading">
+
+          <span class="section-icon">👥</span>
+
+          <div>
+            <h2>Live Participants</h2>
+            <p>বর্তমানে যারা Room-এ আছেন</p>
+          </div>
+
+        </div>
+
+        <div
+          id="participantsList"
+          class="participants-list"
+        >
+          No participants yet
+        </div>
+
+      </section>
+
+
+      <!-- RAISED HANDS -->
+
+      <section class="raised-hands-card glass-card">
+
+        <div class="section-heading">
+
+          <span class="section-icon">✋</span>
+
+          <div>
+            <h2>Raised Hands</h2>
+            <p>যারা কথা বলার অনুমতি চাইছেন</p>
+          </div>
+
+        </div>
+
+        <div
+          id="raisedHandsList"
+          class="raised-hands-list"
+        >
+          No raised hands
+        </div>
+
+      </section>
+
+
+      <!-- ADMIN PANEL -->
+
+      <section
+        id="adminPanel"
+        class="admin-panel glass-card hidden"
+      >
+
+        <div class="section-heading">
+
+          <span class="section-icon">👑</span>
+
+          <div>
+            <h2>Admin Dashboard</h2>
+            <p>Prayer Room নিয়ন্ত্রণ করুন</p>
+          </div>
+
+        </div>
+
+        <div class="admin-actions">
+
+          <button
+            type="button"
+            onclick="muteAll()"
+          >
+            🔇 Mute All
+          </button>
+
+          <button
+            type="button"
+            onclick="allowSpeaker()"
+          >
+            🎤 Allow Speaker
+          </button>
+
+          <button
+            type="button"
+            onclick="lockRoom()"
+          >
+            🔒 Lock / Unlock
+          </button>
+
+          <button
+            type="button"
+            onclick="cleanOldEntries()"
+          >
+            🧹 Clean Entries
+          </button>
+
+          <button
+            type="button"
+            class="danger-button"
+            onclick="endMeeting()"
+          >
+            ⏹ End Meeting
+          </button>
+
+        </div>
+
+        <div class="announcement-form">
+
+          <label for="announcementInput">
+            📢 নতুন Announcement
+          </label>
+
+          <textarea
+            id="announcementInput"
+            placeholder="Announcement লিখুন..."
+            maxlength="500"
+          ></textarea>
+
+          <button
+            type="button"
+            class="announcement-button"
+            onclick="sendAnnouncement()"
+          >
+            📢 Send Announcement
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- MESSAGES -->
+
+      <section
+        id="chatBox"
+        class="messages-card glass-card"
+      >
+
+        <div class="section-heading">
+
+          <span class="section-icon">💬</span>
+
+          <div>
+            <h2>Live Messages</h2>
+            <p>Prayer Meeting live chat</p>
+          </div>
+
+        </div>
+
+        <div
+          id="messagesList"
+          class="messages-list"
+        >
+          No messages yet
+        </div>
+
+        <div class="message-compose">
+
+          <input
+            id="messageInput"
+            type="text"
+            placeholder="Message লিখুন..."
+            maxlength="500"
+          />
+
+          <button
+            type="button"
+            onclick="sendMessage()"
+          >
+            Send
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- ROOM CONTROLS -->
+
+      <section class="room-controls">
+
+        <button
+          type="button"
+          class="control-button"
+          onclick="toggleMic()"
+        >
+          <span class="control-circle mic-circle">
+            🔇
+          </span>
+
+          <span>Mic</span>
+        </button>
+
+        <button
+          type="button"
+          class="control-button"
+          onclick="raiseHand()"
+        >
+          <span class="control-circle">
+            ✋
+          </span>
+
+          <span>Raise Hand</span>
+        </button>
+
+        <button
+          type="button"
+          class="control-button"
+          onclick="leaveRoom()"
+        >
+          <span class="control-circle leave-circle">
+            🚪
+          </span>
+
+          <span>Leave</span>
+        </button>
+
+      </section>
+
+    </main>
+
+  </div>
+
+
+  <!-- FIREBASE -->
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+
+
+  <!-- LIVEKIT -->
+
+  <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
+
+
+  <!-- APP SCRIPT -->
+
+  <script src="script.js"></script>
 
 </body>
 </html>
