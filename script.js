@@ -1290,4 +1290,192 @@ function listenSelf(roomRef) {
           );
         }
       );
+}function listenParticipants(roomRef) {
+  if (unsubscribeParticipants) {
+    unsubscribeParticipants();
+  }
+
+  unsubscribeParticipants =
+    roomRef
+      .collection("participants")
+      .orderBy("name")
+      .onSnapshot(
+        async (snapshot) => {
+          const participantsList =
+            getEl("participantsList");
+
+          const raisedHandsList =
+            getEl("raisedHandsList");
+
+          const raisedHandsCount =
+            getEl("raisedHandsCount");
+
+          await roomRef.set(
+            {
+              online: snapshot.size
+            },
+            {
+              merge: true
+            }
+          );
+
+          if (
+            !participantsList ||
+            !raisedHandsList
+          ) {
+            return;
+          }
+
+          participantsList.innerHTML =
+            "";
+
+          raisedHandsList.innerHTML =
+            "";
+
+          let raisedCount = 0;
+
+          snapshot.forEach(
+            (documentSnapshot) => {
+              const participant =
+                documentSnapshot.data();
+
+              const name =
+                escapeHTML(
+                  participant.name ||
+                    "Unknown"
+                );
+
+              const roleIcon =
+                participant.role ===
+                "admin"
+                  ? "👑"
+                  : "👤";
+
+              const identity =
+                escapeHTML(
+                  participant
+                    .livekitIdentity ||
+                    ""
+                );
+
+              const removeButton =
+                currentUser?.role ===
+                  "admin" &&
+                documentSnapshot.id !==
+                  currentUser.id
+                  ? `
+                    <button
+                      type="button"
+                      onclick="removeParticipant('${documentSnapshot.id}')"
+                    >
+                      Remove
+                    </button>
+                  `
+                  : "";
+
+              participantsList
+                .insertAdjacentHTML(
+                  "beforeend",
+                  `
+                    <div
+                      class="participant-item"
+                      data-livekit-identity="${identity}"
+                    >
+                      <div>
+                        <strong>
+                          ${roleIcon}
+                          ${name}
+                        </strong>
+
+                        <span>
+                          Mic:
+                          ${
+                            participant.micOn
+                              ? "ON 🎙️"
+                              : "Muted 🔇"
+                          }
+                          |
+                          Hand:
+                          ${
+                            participant
+                              .handRaised
+                              ? "Raised ✋"
+                              : "Down"
+                          }
+                        </span>
+                      </div>
+
+                      ${removeButton}
+                    </div>
+                  `
+                );
+
+              if (
+                participant.handRaised
+              ) {
+                raisedCount += 1;
+
+                const allowButton =
+                  currentUser?.role ===
+                  "admin"
+                    ? `
+                      <button
+                        type="button"
+                        onclick="allowSpeakerById('${documentSnapshot.id}')"
+                      >
+                        🎤 Allow Speak
+                      </button>
+                    `
+                    : "";
+
+                raisedHandsList
+                  .insertAdjacentHTML(
+                    "beforeend",
+                    `
+                      <div class="participant-item">
+                        <div>
+                          <strong>
+                            ✋ ${name}
+                          </strong>
+
+                          <span>
+                            Wants to speak
+                          </span>
+                        </div>
+
+                        ${allowButton}
+                      </div>
+                    `
+                  );
+              }
+            }
+          );
+
+          if (snapshot.empty) {
+            participantsList.textContent =
+              "No participants yet";
+          }
+
+          if (raisedCount === 0) {
+            raisedHandsList.textContent =
+              "No raised hands";
+          }
+
+          if (raisedHandsCount) {
+            raisedHandsCount.textContent =
+              String(raisedCount);
+          }
+
+          updateUserStatus(
+            snapshot.size
+          );
+        },
+
+        (error) => {
+          console.error(
+            "Participants listener error:",
+            error
+          );
+        }
+      );
 }
