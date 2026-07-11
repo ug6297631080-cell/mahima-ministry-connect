@@ -648,4 +648,246 @@ function stopMeetingTimer() {
   }
 
   meetingTimerId = null;
+}async function joinRoom() {
+  try {
+    if (currentUser) {
+      showMessage(
+        "আপনি ইতিমধ্যে একটি Room-এ আছেন।"
+      );
+      return;
+    }
+
+    const name =
+      getEl("nameInput")
+        ?.value
+        .trim();
+
+    const role =
+      getEl("roleInput")
+        ?.value;
+
+    const roomKey =
+      getEl("roomInput")
+        ?.value;
+
+    const adminKey =
+      getEl("adminKeyInput")
+        ?.value
+        .trim() || "";
+
+    if (!name) {
+      showMessage(
+        "দয়া করে আপনার নাম লিখুন।"
+      );
+      return;
+    }
+
+    if (!roomIds[roomKey]) {
+      showMessage(
+        "সঠিক Prayer Room নির্বাচন করুন।"
+      );
+      return;
+    }
+
+    if (
+      role === "admin" &&
+      adminKey !==
+        ADMIN_SECRET_KEY
+    ) {
+      showMessage(
+        "Invalid Admin Key ❌"
+      );
+      return;
+    }
+
+    const roomId =
+      roomIds[roomKey];
+
+    const roomRef =
+      db
+        .collection("rooms")
+        .doc(roomId);
+
+    const firstSnapshot =
+      await roomRef.get();
+
+    if (!firstSnapshot.exists) {
+      await roomRef.set({
+        name:
+          roomNames[roomKey],
+
+        online: 0,
+
+        locked: false,
+
+        roomActive: false,
+
+        announcement: null,
+
+        lastResetDate:
+          getIndiaDateKey(),
+
+        createdAt:
+          firebase.firestore
+            .FieldValue
+            .serverTimestamp()
+      });
+    }
+
+    await ensureDailyReset(
+      roomRef
+    );
+
+    const roomSnapshot =
+      await roomRef.get();
+
+    const roomData =
+      roomSnapshot.data() || {};
+
+    roomLocked =
+      roomData.locked === true;
+
+    if (role !== "admin") {
+      if (
+        roomData.roomActive !==
+        true
+      ) {
+        showMessage(
+          "Admin এখনও এই Prayer Room শুরু করেননি।"
+        );
+        return;
+      }
+
+      if (roomLocked) {
+        showMessage(
+          "Room locked আছে। Admin unlock করলে Join করা যাবে।"
+        );
+        return;
+      }
+    }
+
+    if (role === "admin") {
+      await roomRef.set(
+        {
+          roomActive: true,
+
+          locked: false,
+
+          lastResetDate:
+            getIndiaDateKey(),
+
+          startedAt:
+            firebase.firestore
+              .FieldValue
+              .serverTimestamp(),
+
+          endedAt: null
+        },
+        {
+          merge: true
+        }
+      );
+
+      roomLocked = false;
+    }
+
+    micOn =
+      role === "admin";
+
+    allowedToSpeak =
+      role === "admin";
+
+    handRaised = false;
+
+    roomClosing = false;
+
+    currentUser = {
+      id:
+        makeUserId(
+          name,
+          role
+        ),
+
+      name,
+
+      role,
+
+      roomKey,
+
+      roomId
+    };
+
+    await roomRef
+      .collection(
+        "participants"
+      )
+      .doc(currentUser.id)
+      .set(
+        {
+          name,
+
+          role,
+
+          roomKey,
+
+          roomId,
+
+          micOn,
+
+          handRaised,
+
+          allowedToSpeak,
+
+          online: true,
+
+          joinedAt:
+            firebase.firestore
+              .FieldValue
+              .serverTimestamp()
+        },
+        {
+          merge: true
+        }
+      );
+
+    showRoomUI(role);
+
+    updateRoomTitle();
+
+    updateRoleBadge();
+
+    updateMicUI();
+
+    updateHandUI();
+
+    updateLockUI();
+
+    updateUserStatus(1);
+
+    listenRoom(roomRef);
+
+    listenParticipants(
+      roomRef
+    );
+
+    listenSelf(roomRef);
+
+    listenMessages(roomRef);
+
+    await connectLiveKit(
+      roomId,
+      name,
+      role
+    );
+
+  } catch (error) {
+    console.error(
+      "Join error:",
+      error
+    );
+
+    showMessage(
+      `Join error: ${error.message}`
+    );
+  }
 }
