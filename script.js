@@ -316,335 +316,6 @@ Yesterday 7:22 PM
 
 Today 5:53 AM
 Today 7:37 AM
-দারুণ! 🔥 Part 5A Complete।
-
-আমরা এখন প্রায় ৯০% শেষ।
-
-এবার Part 5B। এটা Part 5A-এর নিচে paste করবে।
-
-/* =====================================================
-   FINAL SCRIPT.JS
-   PART 5B / 6
-
-   END MEETING
-   LEAVE ROOM
-   ADMIN LEAVE = EVERYONE LEAVE
-===================================================== */
-
-
-/* =========================
-   END MEETING
-========================= */
-
-async function endMeeting() {
-
-  if (!isAdmin()) return;
-
-  const ok = confirm(
-    "Meeting শেষ করলে সবাই Room থেকে বের হয়ে যাবে। Continue?"
-  );
-
-  if (!ok) return;
-
-  try {
-
-    const roomRef = db
-      .collection("rooms")
-      .doc(currentUser.roomId);
-
-    await roomRef.set({
-
-      roomActive:false,
-
-      locked:true,
-
-      online:0,
-
-      announcement:null,
-
-      endedAt:
-      firebase.firestore.FieldValue.serverTimestamp()
-
-    },{merge:true});
-
-    const participants =
-      await roomRef
-      .collection("participants")
-      .get();
-
-    const batch=db.batch();
-
-    participants.forEach(doc=>{
-      batch.delete(doc.ref);
-    });
-
-    await batch.commit();
-
-    showMessage(
-      "Meeting End Successfully."
-    );
-
-    await leaveRoom({
-      auto:true,
-      closeRoom:false,
-      deleteParticipant:false
-    });
-
-  }
-
-  catch(error){
-
-    console.error(error);
-
-    showMessage(error.message);
-
-  }
-
-}
-
-
-/* =========================
-   LEAVE ROOM
-========================= */
-
-async function leaveRoom(options={}){
-
-const{
-
-auto=false,
-
-closeRoom=true,
-
-deleteParticipant=true
-
-}=options;
-
-if(!currentUser)return;
-
-const roomRef=db
-.collection("rooms")
-.doc(currentUser.roomId);
-
-try{
-
-roomClosing=true;
-
-if(deleteParticipant){
-
-await roomRef
-.collection("participants")
-.doc(currentUser.id)
-.delete()
-.catch(()=>{});
-
-}
-
-/* Admin Leave */
-
-if(
-
-currentUser.role==="admin"
-
-&&
-
-closeRoom
-
-){
-
-await roomRef.set({
-
-roomActive:false,
-
-locked:true,
-
-online:0,
-
-endedAt:
-firebase.firestore.FieldValue.serverTimestamp()
-
-},{merge:true});
-
-const members=
-await roomRef
-.collection("participants")
-.get();
-
-const batch=db.batch();
-
-members.forEach(doc=>{
-
-batch.delete(doc.ref);
-
-});
-
-await batch.commit();
-
-}
-
-
-/* LiveKit */
-
-if(lkRoom){
-
-lkRoom.disconnect();
-
-lkRoom=null;
-
-}
-
-
-/* Listener */
-
-stopListeners();
-
-stopMeetingTimer();
-
-
-currentUser=null;
-
-micOn=false;
-
-handRaised=false;
-
-allowedToSpeak=false;
-
-roomLocked=false;
-
-roomClosing=false;
-
-
-/* UI */
-
-getEl("roomPanel")
-?.classList.add("hidden");
-
-getEl("adminPanel")
-?.classList.add("hidden");
-
-getEl("joinSection")
-?.classList.remove("hidden");
-
-getEl("availableRooms")
-?.classList.remove("hidden");
-
-updateMicUI();
-
-updateHandUI();
-
-if(!auto){
-
-showMessage(
-"Room থেকে বেরিয়ে গেছেন।"
-);
-
-}
-
-}
-
-catch(error){
-
-console.error(error);
-
-showMessage(error.message);
-
-}
-
-}
-
-
-/* =========================
-   ADMIN CHECK
-========================= */
-
-function isAdmin(){
-
-if(
-
-!currentUser ||
-
-currentUser.role!=="admin"
-
-){
-
-showMessage(
-"Only Admin."
-);
-
-return false;
-
-}
-
-return true;
-
-}
-
-
-/* =========================
-   PAGE CLOSE
-========================= */
-
-window.addEventListener(
-
-"pagehide",
-
-()=>{
-
-if(lkRoom){
-
-lkRoom.disconnect();
-
-}
-
-}
-
-);
-
-
-/* =========================
-   EXPORT FUNCTIONS
-========================= */
-
-window.joinRoom=joinRoom;
-
-window.raiseHand=raiseHand;
-
-window.toggleMic=toggleMic;
-
-window.sendMessage=sendMessage;
-
-window.sendAnnouncement=sendAnnouncement;
-
-window.lockRoom=lockRoom;
-
-window.removeParticipant=removeParticipant;
-
-window.cleanOldEntries=cleanOldEntries;
-
-window.muteAll=muteAll;
-
-window.allowSpeaker=allowSpeaker;
-
-window.allowSpeakerById=allowSpeakerById;
-
-window.leaveRoom=leaveRoom;
-
-window.endMeeting=endMeeting;
-
-window.clearAnnouncement=clearAnnouncement;
-এরপর
-লিখবে:
-
-Part 5B Complete
-
-তারপর আমি Final Part 6 দেব।
-
-🎉 Part 6-এর পর script.js 100% Complete হবে।
-
-তারপর আমরা index.html-এ যাব এবং পুরো অ্যাপ Production Ready করব।
-
-
-Part 5b complete 
-
 দারুণ! 🎉 Part 5B Complete।
 
 প্রথমে একটা খুব গুরুত্বপূর্ণ কথা বলি।
@@ -718,10 +389,33 @@ GitHub Pages ১–২ মিনিট পরে refresh করো
 এই ফাইলে duplicate function নেই এবং Audio, Chat, Announcement, Daily Reset, Admin Leave, Remove Member, End Meeting—সব একসাথে আছে। 
 
 
+Today 11:04 AM
+এই যে টেক্স ফাইলটা দিয়েছো এই টেক্সট ফাইলের মধ্যে আমাদের আগের সমস্ত কথোপকথন রয়েছে কোডের সঙ্গে। সমস্ত কথোপকথন মুছে দিয়ে শুধুমাত্র এবার একটা টেক্সফইল দাও যাতে শুধুমাত্র কোড থাকবে কোন কথোপকথন থাকবেনা
+
+হয়ে গেছে। ✅
+
+এবার এই ফাইলটিতে শুধুমাত্র JavaScript কোড আছে। কোনো কথোপকথন, ব্যাখ্যা বা অতিরিক্ত লেখা নেই।
+
+ডাউনলোড করুন:
+mahima_final_script_code_only.txt
+
+যদি চাও, আমি একইভাবে:
+
+✅ index.html (শুধু কোড)
+
+✅ styles.css (শুধু কোড)
+
+✅ server.js (শুধু কোড)
+
+✅ firestore.rules (শুধু কোড)
+
+এগুলোও আলাদা কোড-অনলি ফাইল হিসেবে তৈরি করে দেব, যাতে সরাসরি GitHub-এ paste করতে পারো। 
+
+
 No file chosen
 Library
 /
-mahima_final_script.txt
+mahima_final_script_code_only.txt
 
 
 /* Mahima Ministry Connect - Final Clean Script */
@@ -1794,7 +1488,7 @@ window.endMeeting = endMeeting;
 window.leaveRoom = leaveRoom;
 Library
 /
-mahima_final_script.txt
+mahima_final_script_code_only.txt
 
 
 /* Mahima Ministry Connect - Final Clean Script */
