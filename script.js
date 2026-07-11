@@ -2117,4 +2117,257 @@ async function cleanOldEntries() {
       error.message
     );
   }
+}async function endMeeting() {
+  if (!isAdmin()) {
+    return;
+  }
+
+  const confirmed =
+    window.confirm(
+      "Meeting শেষ করলে সবাই Room থেকে বের হয়ে যাবে। নিশ্চিত?"
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const roomRef = db
+      .collection("rooms")
+      .doc(currentUser.roomId);
+
+    await roomRef.set(
+      {
+        roomActive: false,
+        locked: true,
+        online: 0,
+        announcement: null,
+        endedAt:
+          firebase.firestore
+            .FieldValue
+            .serverTimestamp()
+      },
+      {
+        merge: true
+      }
+    );
+
+    await deleteCollection(
+      roomRef
+        .collection("participants")
+        .orderBy(
+          firebase.firestore
+            .FieldPath
+            .documentId()
+        )
+    );
+
+    showMessage(
+      "Meeting শেষ হয়েছে।"
+    );
+
+    await leaveRoom({
+      auto: true,
+      closeRoom: false,
+      deleteParticipant: false
+    });
+
+  } catch (error) {
+    console.error(
+      "End meeting error:",
+      error
+    );
+
+    showMessage(
+      error.message
+    );
+  }
 }
+
+async function leaveRoom(
+  options = {}
+) {
+  const {
+    auto = false,
+    closeRoom = true,
+    deleteParticipant = true
+  } = options;
+
+  if (!currentUser) {
+    return;
+  }
+
+  const leavingUser = {
+    ...currentUser
+  };
+
+  const roomRef = db
+    .collection("rooms")
+    .doc(leavingUser.roomId);
+
+  try {
+    roomClosing = true;
+
+    if (deleteParticipant) {
+      await roomRef
+        .collection("participants")
+        .doc(leavingUser.id)
+        .delete()
+        .catch(() => {});
+    }
+
+    if (
+      leavingUser.role === "admin" &&
+      closeRoom
+    ) {
+      await roomRef.set(
+        {
+          roomActive: false,
+          locked: true,
+          online: 0,
+          endedAt:
+            firebase.firestore
+              .FieldValue
+              .serverTimestamp()
+        },
+        {
+          merge: true
+        }
+      );
+
+      await deleteCollection(
+        roomRef
+          .collection("participants")
+          .orderBy(
+            firebase.firestore
+              .FieldPath
+              .documentId()
+          )
+      );
+    }
+
+    if (lkRoom) {
+      lkRoom.disconnect();
+      lkRoom = null;
+    }
+
+    document
+      .querySelectorAll(
+        "audio[data-livekit-audio='true']"
+      )
+      .forEach(
+        (element) =>
+          element.remove()
+      );
+
+    stopListeners();
+
+    stopMeetingTimer();
+
+    currentUser = null;
+
+    micOn = false;
+
+    handRaised = false;
+
+    allowedToSpeak = false;
+
+    roomLocked = false;
+
+    roomClosing = false;
+
+    meetingStartedAt = null;
+
+    showHomeUI();
+
+    updateMicUI();
+
+    updateHandUI();
+
+    if (!auto) {
+      showMessage(
+        "Room থেকে বেরিয়ে গেছেন।"
+      );
+    }
+
+  } catch (error) {
+    console.error(
+      "Leave room error:",
+      error
+    );
+
+    showMessage(
+      `Leave error: ${error.message}`
+    );
+  }
+}
+
+document.addEventListener(
+  "keydown",
+  (event) => {
+    const input =
+      getEl("messageInput");
+
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey &&
+      document.activeElement ===
+        input
+    ) {
+      event.preventDefault();
+
+      sendMessage();
+    }
+  }
+);
+
+window.addEventListener(
+  "pagehide",
+  () => {
+    if (lkRoom) {
+      lkRoom.disconnect();
+    }
+  }
+);
+
+window.joinRoom =
+  joinRoom;
+
+window.sendMessage =
+  sendMessage;
+
+window.sendAnnouncement =
+  sendAnnouncement;
+
+window.clearAnnouncement =
+  clearAnnouncement;
+
+window.raiseHand =
+  raiseHand;
+
+window.toggleMic =
+  toggleMic;
+
+window.allowSpeaker =
+  allowSpeaker;
+
+window.allowSpeakerById =
+  allowSpeakerById;
+
+window.muteAll =
+  muteAll;
+
+window.lockRoom =
+  lockRoom;
+
+window.removeParticipant =
+  removeParticipant;
+
+window.cleanOldEntries =
+  cleanOldEntries;
+
+window.endMeeting =
+  endMeeting;
+
+window.leaveRoom =
+  leaveRoom;
