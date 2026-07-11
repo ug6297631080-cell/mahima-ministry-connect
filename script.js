@@ -1079,3 +1079,215 @@ function stopMeetingTimer() {
     );
   }
 }
+function listenRoom(roomRef) {
+  if (unsubscribeRoom) {
+    unsubscribeRoom();
+  }
+
+  unsubscribeRoom =
+    roomRef.onSnapshot(
+      async (snapshot) => {
+        if (
+          !snapshot.exists ||
+          !currentUser
+        ) {
+          return;
+        }
+
+        const data =
+          snapshot.data();
+
+        roomLocked =
+          data.locked === true;
+
+        updateLockUI();
+
+        updateUserStatus(
+          data.online || 0
+        );
+
+        const announcementText =
+          getEl(
+            "announcementText"
+          );
+
+        const announcementMeta =
+          getEl(
+            "announcementMeta"
+          );
+
+        if (
+          data.announcement?.text
+        ) {
+          if (
+            announcementText
+          ) {
+            announcementText
+              .textContent =
+              data.announcement.text;
+          }
+
+          if (
+            announcementMeta
+          ) {
+            announcementMeta
+              .textContent =
+              `— ${
+                data.announcement
+                  .author ||
+                "Admin"
+              }`;
+          }
+        } else {
+          if (
+            announcementText
+          ) {
+            announcementText
+              .textContent =
+              "এখনো কোনো announcement নেই।";
+          }
+
+          if (
+            announcementMeta
+          ) {
+            announcementMeta
+              .textContent =
+              "— Admin";
+          }
+        }
+
+        if (data.startedAt) {
+          startMeetingTimer(
+            data.startedAt
+          );
+        }
+
+        if (
+          data.roomActive ===
+            false &&
+          currentUser.role !==
+            "admin" &&
+          !roomClosing
+        ) {
+          roomClosing = true;
+
+          showMessage(
+            "Admin Room বন্ধ করেছেন। আপনি Room থেকে বেরিয়ে যাচ্ছেন।"
+          );
+
+          await leaveRoom({
+            auto: true,
+            closeRoom: false
+          });
+        }
+      },
+
+      (error) => {
+        console.error(
+          "Room listener error:",
+          error
+        );
+      }
+    );
+}
+
+function listenSelf(roomRef) {
+  if (unsubscribeSelf) {
+    unsubscribeSelf();
+  }
+
+  unsubscribeSelf =
+    roomRef
+      .collection(
+        "participants"
+      )
+      .doc(currentUser.id)
+      .onSnapshot(
+        async (snapshot) => {
+          if (!currentUser) {
+            return;
+          }
+
+          if (
+            !snapshot.exists
+          ) {
+            if (!roomClosing) {
+              roomClosing = true;
+
+              showMessage(
+                "Admin আপনাকে Room থেকে সরিয়ে দিয়েছেন।"
+              );
+
+              await leaveRoom({
+                auto: true,
+                closeRoom: false,
+                deleteParticipant:
+                  false
+              });
+            }
+
+            return;
+          }
+
+          const data =
+            snapshot.data();
+
+          handRaised =
+            data.handRaised ===
+            true;
+
+          allowedToSpeak =
+            data.allowedToSpeak ===
+              true ||
+            currentUser.role ===
+              "admin";
+
+          const newMicState =
+            data.micOn === true &&
+            allowedToSpeak;
+
+          if (
+            micOn !==
+            newMicState
+          ) {
+            micOn =
+              newMicState;
+
+            if (
+              lkRoom
+                ?.localParticipant
+            ) {
+              try {
+                await lkRoom
+                  .localParticipant
+                  .setMicrophoneEnabled(
+                    micOn
+                  );
+              } catch (error) {
+                console.error(
+                  "Mic sync error:",
+                  error
+                );
+
+                showMessage(
+                  "Microphone permission Allow করুন।"
+                );
+              }
+            }
+          }
+
+          updateMicUI();
+
+          updateHandUI();
+
+          updateRoleBadge();
+        },
+
+        (error) => {
+          console.error(
+            "Self listener error:",
+            error
+          );
+        }
+      );
+}
