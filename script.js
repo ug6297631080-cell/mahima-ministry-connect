@@ -1953,4 +1953,168 @@ async function muteAll() {
       error.message
     );
   }
+}async function lockRoom() {
+  if (!isAdmin()) {
+    return;
+  }
+
+  try {
+    const roomRef = db
+      .collection("rooms")
+      .doc(currentUser.roomId);
+
+    const snapshot = await roomRef.get();
+
+    const newLocked =
+      !(snapshot.data()?.locked === true);
+
+    await roomRef.set(
+      {
+        locked: newLocked
+      },
+      {
+        merge: true
+      }
+    );
+
+    roomLocked = newLocked;
+
+    updateLockUI();
+
+    showMessage(
+      newLocked
+        ? "Room locked হয়েছে 🔒"
+        : "Room unlocked হয়েছে 🔓"
+    );
+
+  } catch (error) {
+    console.error(
+      "Lock room error:",
+      error
+    );
+
+    showMessage(
+      error.message
+    );
+  }
+}
+
+async function removeParticipant(
+  participantId
+) {
+  if (!isAdmin()) {
+    return;
+  }
+
+  if (
+    !participantId ||
+    participantId === currentUser.id
+  ) {
+    return;
+  }
+
+  try {
+    const participantRef = db
+      .collection("rooms")
+      .doc(currentUser.roomId)
+      .collection("participants")
+      .doc(participantId);
+
+    const snapshot =
+      await participantRef.get();
+
+    if (!snapshot.exists) {
+      showMessage(
+        "এই Member আর Room-এ নেই।"
+      );
+      return;
+    }
+
+    const name =
+      snapshot.data().name ||
+      "Member";
+
+    const confirmed =
+      window.confirm(
+        `${name}-কে Room থেকে Remove করবেন?`
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    await participantRef.delete();
+
+    showMessage(
+      `${name} Room থেকে Remove হয়েছে।`
+    );
+
+  } catch (error) {
+    console.error(
+      "Remove participant error:",
+      error
+    );
+
+    showMessage(
+      error.message
+    );
+  }
+}
+
+async function cleanOldEntries() {
+  if (!isAdmin()) {
+    return;
+  }
+
+  try {
+    const roomRef = db
+      .collection("rooms")
+      .doc(currentUser.roomId);
+
+    const snapshot = await roomRef
+      .collection("participants")
+      .get();
+
+    const batch = db.batch();
+
+    let count = 0;
+
+    snapshot.forEach(
+      (documentSnapshot) => {
+        if (
+          documentSnapshot.id !==
+          currentUser.id
+        ) {
+          batch.delete(
+            documentSnapshot.ref
+          );
+
+          count += 1;
+        }
+      }
+    );
+
+    if (count === 0) {
+      showMessage(
+        "পরিষ্কার করার মতো পুরনো entry নেই।"
+      );
+      return;
+    }
+
+    await batch.commit();
+
+    showMessage(
+      `${count}টি entry পরিষ্কার হয়েছে ✅`
+    );
+
+  } catch (error) {
+    console.error(
+      "Clean entries error:",
+      error
+    );
+
+    showMessage(
+      error.message
+    );
+  }
 }
