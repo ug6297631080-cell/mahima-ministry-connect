@@ -890,4 +890,192 @@ function stopMeetingTimer() {
       `Join error: ${error.message}`
     );
   }
+}async function connectLiveKit(
+  roomName,
+  participantName,
+  role
+) {
+  try {
+    if (!window.LivekitClient) {
+      throw new Error(
+        "LiveKit Client load হয়নি। index.html check করুন।"
+      );
+    }
+
+    const response =
+      await fetch(
+        TOKEN_SERVER_URL,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+            roomName,
+            participantName,
+            role
+          })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !data.token
+    ) {
+      throw new Error(
+        data.details ||
+        data.error ||
+        "Token পাওয়া যায়নি।"
+      );
+    }
+
+    const {
+      Room,
+      RoomEvent,
+      Track
+    } = window.LivekitClient;
+
+    lkRoom =
+      new Room({
+        adaptiveStream: true,
+        dynacast: true
+      });
+
+    lkRoom.on(
+      RoomEvent.TrackSubscribed,
+      (track) => {
+        if (
+          track.kind ===
+            Track.Kind.Audio ||
+          track.kind ===
+            "audio"
+        ) {
+          const audio =
+            track.attach();
+
+          audio.autoplay = true;
+
+          audio.playsInline = true;
+
+          audio.dataset.livekitAudio =
+            "true";
+
+          audio.style.display =
+            "none";
+
+          document.body
+            .appendChild(audio);
+
+          audio.play()
+            .catch(() => {});
+        }
+      }
+    );
+
+    lkRoom.on(
+      RoomEvent.TrackUnsubscribed,
+      (track) => {
+        track
+          .detach()
+          .forEach(
+            (element) =>
+              element.remove()
+          );
+      }
+    );
+
+    lkRoom.on(
+      RoomEvent
+        .ActiveSpeakersChanged,
+      (speakers) => {
+        const identities =
+          new Set(
+            speakers.map(
+              (participant) =>
+                participant.identity
+            )
+          );
+
+        document
+          .querySelectorAll(
+            ".participant-item[data-livekit-identity]"
+          )
+          .forEach(
+            (element) => {
+              element
+                .classList
+                .toggle(
+                  "speaking",
+                  identities.has(
+                    element.dataset
+                      .livekitIdentity
+                  )
+                );
+            }
+          );
+      }
+    );
+
+    lkRoom.on(
+      RoomEvent.Disconnected,
+      () => {
+        console.log(
+          "LiveKit disconnected."
+        );
+      }
+    );
+
+    await lkRoom.connect(
+      LIVEKIT_URL,
+      data.token
+    );
+
+    await lkRoom
+      .startAudio()
+      .catch(() => {});
+
+    await lkRoom
+      .localParticipant
+      .setMicrophoneEnabled(
+        micOn
+      );
+
+    await db
+      .collection("rooms")
+      .doc(roomName)
+      .collection(
+        "participants"
+      )
+      .doc(currentUser.id)
+      .update({
+        micOn,
+
+        allowedToSpeak,
+
+        livekitIdentity:
+          data.identity || ""
+      });
+
+    updateMicUI();
+
+    showMessage(
+      "Audio Room Connected ✅"
+    );
+
+  } catch (error) {
+    console.error(
+      "Audio connect error:",
+      error
+    );
+
+    showMessage(
+      `Audio connect error: ${error.message}`
+    );
+  }
 }
