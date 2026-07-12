@@ -515,7 +515,99 @@ async function ensureDailyReset(
     if (currentUser) {
       showMessage(
         "আপনি ইতিমধ্যে একটি Room-এ আছেন।"
-      );
+      );const audioDebugLogs = [];
+
+function audioDebug(message, data = null) {
+  const time = new Date().toLocaleTimeString();
+
+  const line = data
+    ? `[${time}] ${message}: ${JSON.stringify(data)}`
+    : `[${time}] ${message}`;
+
+  audioDebugLogs.push(line);
+
+  if (audioDebugLogs.length > 60) {
+    audioDebugLogs.shift();
+  }
+
+  console.log("[Mahima Audio Debug]", message, data || "");
+  renderAudioDebug();
+}
+
+function createAudioDebugPanel() {
+  if (getEl("audioDebugPanel")) return;
+
+  const panel = document.createElement("section");
+
+  panel.id = "audioDebugPanel";
+  panel.className = "glass-card";
+  panel.style.margin = "12px";
+  panel.style.padding = "14px";
+  panel.style.display = "none";
+
+  panel.innerHTML = `
+    <h3 style="margin-bottom:10px;">🛠 Audio Debug</h3>
+
+    <div
+      id="audioDebugContent"
+      style="
+        max-height:260px;
+        overflow:auto;
+        white-space:pre-wrap;
+        word-break:break-word;
+        font-family:monospace;
+        font-size:11px;
+        line-height:1.5;
+        background:rgba(0,0,0,.35);
+        padding:10px;
+        border-radius:12px;
+      "
+    ></div>
+
+    <button
+      type="button"
+      onclick="copyAudioDebugReport()"
+      style="margin-top:10px;width:100%;"
+    >
+      📋 Copy Debug Report
+    </button>
+  `;
+
+  getEl("roomPanel")?.appendChild(panel);
+}
+
+function renderAudioDebug() {
+  const content = getEl("audioDebugContent");
+
+  if (content) {
+    content.textContent = audioDebugLogs.join("\n");
+    content.scrollTop = content.scrollHeight;
+  }
+}
+
+function showAudioDebugPanel() {
+  createAudioDebugPanel();
+
+  const panel = getEl("audioDebugPanel");
+
+  if (panel) {
+    panel.style.display = "block";
+    panel.scrollIntoView({ behavior: "smooth" });
+  }
+
+  renderAudioDebug();
+}
+
+async function copyAudioDebugReport() {
+  const report = audioDebugLogs.join("\n");
+
+  try {
+    await navigator.clipboard.writeText(report);
+    showMessage("Debug report copy হয়েছে ✅");
+  } catch {
+    showMessage(report);
+  }
+}
       return;
     }
 
