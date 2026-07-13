@@ -1,6 +1,5 @@
 
-mahima_v2_script_code_only.txt
-
+mahima_script_repai
 
 const firebaseConfig = {
   apiKey: "AIzaSyClk4lBtDAUP5s1OTXhMlAFD8gvMUOXRt4",
@@ -211,8 +210,16 @@ async function joinRoom() {
     roomClosing = false;
 
     currentUser = {
-      id: `${makeUserId(name, role)}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name, role, roomKey, roomId,
-      micOn, handRaised, allowedToSpeak, online: true,
+      id: makeUserId(name, role),
+      name,
+      role,
+      roomKey,
+      roomId,
+      livekitIdentity: `${slugify(name)}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      micOn,
+      handRaised,
+      allowedToSpeak,
+      online: true,
       joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
       lastSeen: firebase.firestore.FieldValue.serverTimestamp()
     };
@@ -226,20 +233,51 @@ async function joinRoom() {
 
     updateRoomTitle(); updateRoleBadge(); updateMicUI(); updateHandUI(); updateLockUI(); updateUserStatus(1);
     listenRoom(roomRef); listenParticipants(roomRef); listenSelf(roomRef); listenMessages(roomRef);
-    await connectLiveKit(roomId, `${name}-${currentUser.id}`, role);
+    await connectLiveKit(roomId, currentUser.livekitIdentity, role);
   } catch (error) {
     console.error("Join error:", error);
+
+    if (currentUser) {
+      const failedUser = { ...currentUser };
+      await db.collection("rooms")
+        .doc(failedUser.roomId)
+        .collection("participants")
+        .doc(failedUser.id)
+        .delete()
+        .catch(() => {});
+    }
+
+    if (lkRoom) {
+      lkRoom.disconnect();
+      lkRoom = null;
+    }
+
+    stopListeners();
+    stopMeetingTimer();
+
+    currentUser = null;
+    micOn = false;
+    handRaised = false;
+    allowedToSpeak = false;
+    roomLocked = false;
+    roomClosing = false;
+
+    getEl("roomPanel")?.classList.add("hidden");
+    getEl("adminPanel")?.classList.add("hidden");
+    getEl("joinSection")?.classList.remove("hidden");
+    getEl("availableRooms")?.classList.remove("hidden");
+
     showMessage(`Join error: ${error.message}`);
   }
 }
 
-async function connectLiveKit(roomName, participantName, role) {
+async function connectLiveKit(roomName, participantIdentity, role) {
   try {
     if (!window.LivekitClient) throw new Error("LiveKit Client load হয়নি।");
     const response = await fetch(TOKEN_SERVER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomName, participantName, role })
+      body: JSON.stringify({ roomName, participantName: participantIdentity, role })
     });
     const payload = await response.json();
     if (!response.ok || !payload.token) throw new Error(payload.details || payload.error || "Token পাওয়া যায়নি।");
@@ -258,9 +296,9 @@ async function connectLiveKit(roomName, participantName, role) {
 
     lkRoom.on(RoomEvent.TrackUnsubscribed, (track) => track.detach().forEach((el) => el.remove()));
     lkRoom.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
-      const names = new Set(speakers.map((p) => p.name || p.identity));
-      document.querySelectorAll(".participant-item").forEach((el) => {
-        el.classList.toggle("speaking", names.has(el.dataset.name));
+      const identities = new Set(speakers.map((p) => p.identity));
+      document.querySelectorAll(".participant-item[data-livekit-identity]").forEach((el) => {
+        el.classList.toggle("speaking", identities.has(el.dataset.livekitIdentity));
       });
     });
 
@@ -269,7 +307,7 @@ async function connectLiveKit(roomName, participantName, role) {
     await lkRoom.localParticipant.setMicrophoneEnabled(micOn);
 
     await db.collection("rooms").doc(roomName).collection("participants").doc(currentUser.id).update({
-      micOn, allowedToSpeak, livekitIdentity: payload.identity || `${participantName}`
+      micOn, allowedToSpeak, livekitIdentity: payload.identity || participantIdentity
     });
 
     updateMicUI();
@@ -346,7 +384,7 @@ function listenParticipants(roomRef) {
       const remove = currentUser?.role === "admin" && doc.id !== currentUser.id
         ? `<button type="button" onclick="removeParticipant('${doc.id}')">Remove</button>` : "";
       list.insertAdjacentHTML("beforeend", `
-        <div class="participant-item" data-name="${name}">
+        <div class="participant-item" data-livekit-identity="${escapeHTML(p.livekitIdentity || "")}">
           <div><strong>${p.role === "admin" ? "👑" : "👤"} ${name}</strong>
           <span>Mic: ${p.micOn ? "ON 🎙️" : "Muted 🔇"} | Hand: ${p.handRaised ? "Raised ✋" : "Down"}</span></div>
           ${remove}
@@ -538,7 +576,7 @@ Object.assign(window, {
 });
 Library
 /
-mahima_v2_script_code_only.txt
+mahima_script_repaired_code_only.txt
 
 
 const firebaseConfig = {
@@ -750,8 +788,16 @@ async function joinRoom() {
     roomClosing = false;
 
     currentUser = {
-      id: `${makeUserId(name, role)}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name, role, roomKey, roomId,
-      micOn, handRaised, allowedToSpeak, online: true,
+      id: makeUserId(name, role),
+      name,
+      role,
+      roomKey,
+      roomId,
+      livekitIdentity: `${slugify(name)}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      micOn,
+      handRaised,
+      allowedToSpeak,
+      online: true,
       joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
       lastSeen: firebase.firestore.FieldValue.serverTimestamp()
     };
@@ -765,20 +811,51 @@ async function joinRoom() {
 
     updateRoomTitle(); updateRoleBadge(); updateMicUI(); updateHandUI(); updateLockUI(); updateUserStatus(1);
     listenRoom(roomRef); listenParticipants(roomRef); listenSelf(roomRef); listenMessages(roomRef);
-    await connectLiveKit(roomId, `${name}-${currentUser.id}`, role);
+    await connectLiveKit(roomId, currentUser.livekitIdentity, role);
   } catch (error) {
     console.error("Join error:", error);
+
+    if (currentUser) {
+      const failedUser = { ...currentUser };
+      await db.collection("rooms")
+        .doc(failedUser.roomId)
+        .collection("participants")
+        .doc(failedUser.id)
+        .delete()
+        .catch(() => {});
+    }
+
+    if (lkRoom) {
+      lkRoom.disconnect();
+      lkRoom = null;
+    }
+
+    stopListeners();
+    stopMeetingTimer();
+
+    currentUser = null;
+    micOn = false;
+    handRaised = false;
+    allowedToSpeak = false;
+    roomLocked = false;
+    roomClosing = false;
+
+    getEl("roomPanel")?.classList.add("hidden");
+    getEl("adminPanel")?.classList.add("hidden");
+    getEl("joinSection")?.classList.remove("hidden");
+    getEl("availableRooms")?.classList.remove("hidden");
+
     showMessage(`Join error: ${error.message}`);
   }
 }
 
-async function connectLiveKit(roomName, participantName, role) {
+async function connectLiveKit(roomName, participantIdentity, role) {
   try {
     if (!window.LivekitClient) throw new Error("LiveKit Client load হয়নি।");
     const response = await fetch(TOKEN_SERVER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomName, participantName, role })
+      body: JSON.stringify({ roomName, participantName: participantIdentity, role })
     });
     const payload = await response.json();
     if (!response.ok || !payload.token) throw new Error(payload.details || payload.error || "Token পাওয়া যায়নি।");
@@ -797,9 +874,9 @@ async function connectLiveKit(roomName, participantName, role) {
 
     lkRoom.on(RoomEvent.TrackUnsubscribed, (track) => track.detach().forEach((el) => el.remove()));
     lkRoom.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
-      const names = new Set(speakers.map((p) => p.name || p.identity));
-      document.querySelectorAll(".participant-item").forEach((el) => {
-        el.classList.toggle("speaking", names.has(el.dataset.name));
+      const identities = new Set(speakers.map((p) => p.identity));
+      document.querySelectorAll(".participant-item[data-livekit-identity]").forEach((el) => {
+        el.classList.toggle("speaking", identities.has(el.dataset.livekitIdentity));
       });
     });
 
@@ -808,7 +885,7 @@ async function connectLiveKit(roomName, participantName, role) {
     await lkRoom.localParticipant.setMicrophoneEnabled(micOn);
 
     await db.collection("rooms").doc(roomName).collection("participants").doc(currentUser.id).update({
-      micOn, allowedToSpeak, livekitIdentity: payload.identity || `${participantName}`
+      micOn, allowedToSpeak, livekitIdentity: payload.identity || participantIdentity
     });
 
     updateMicUI();
@@ -885,7 +962,7 @@ function listenParticipants(roomRef) {
       const remove = currentUser?.role === "admin" && doc.id !== currentUser.id
         ? `<button type="button" onclick="removeParticipant('${doc.id}')">Remove</button>` : "";
       list.insertAdjacentHTML("beforeend", `
-        <div class="participant-item" data-name="${name}">
+        <div class="participant-item" data-livekit-identity="${escapeHTML(p.livekitIdentity || "")}">
           <div><strong>${p.role === "admin" ? "👑" : "👤"} ${name}</strong>
           <span>Mic: ${p.micOn ? "ON 🎙️" : "Muted 🔇"} | Hand: ${p.handRaised ? "Raised ✋" : "Down"}</span></div>
           ${remove}
