@@ -1,4 +1,6 @@
-mahima_script_clean_code_only.txt
+
+mahima_v2_script_code_only.txt
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyClk4lBtDAUP5s1OTXhMlAFD8gvMUOXRt4",
@@ -209,7 +211,7 @@ async function joinRoom() {
     roomClosing = false;
 
     currentUser = {
-      id: makeUserId(name, role), name, role, roomKey, roomId,
+      id: `${makeUserId(name, role)}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name, role, roomKey, roomId,
       micOn, handRaised, allowedToSpeak, online: true,
       joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
       lastSeen: firebase.firestore.FieldValue.serverTimestamp()
@@ -224,7 +226,7 @@ async function joinRoom() {
 
     updateRoomTitle(); updateRoleBadge(); updateMicUI(); updateHandUI(); updateLockUI(); updateUserStatus(1);
     listenRoom(roomRef); listenParticipants(roomRef); listenSelf(roomRef); listenMessages(roomRef);
-    await connectLiveKit(roomId, name, role);
+    await connectLiveKit(roomId, `${name}-${currentUser.id}`, role);
   } catch (error) {
     console.error("Join error:", error);
     showMessage(`Join error: ${error.message}`);
@@ -267,7 +269,7 @@ async function connectLiveKit(roomName, participantName, role) {
     await lkRoom.localParticipant.setMicrophoneEnabled(micOn);
 
     await db.collection("rooms").doc(roomName).collection("participants").doc(currentUser.id).update({
-      micOn, allowedToSpeak, livekitIdentity: payload.identity || null
+      micOn, allowedToSpeak, livekitIdentity: payload.identity || `${participantName}`
     });
 
     updateMicUI();
@@ -536,7 +538,7 @@ Object.assign(window, {
 });
 Library
 /
-mahima_script_clean_code_only.txt
+mahima_v2_script_code_only.txt
 
 
 const firebaseConfig = {
@@ -748,7 +750,7 @@ async function joinRoom() {
     roomClosing = false;
 
     currentUser = {
-      id: makeUserId(name, role), name, role, roomKey, roomId,
+      id: `${makeUserId(name, role)}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name, role, roomKey, roomId,
       micOn, handRaised, allowedToSpeak, online: true,
       joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
       lastSeen: firebase.firestore.FieldValue.serverTimestamp()
@@ -763,7 +765,7 @@ async function joinRoom() {
 
     updateRoomTitle(); updateRoleBadge(); updateMicUI(); updateHandUI(); updateLockUI(); updateUserStatus(1);
     listenRoom(roomRef); listenParticipants(roomRef); listenSelf(roomRef); listenMessages(roomRef);
-    await connectLiveKit(roomId, name, role);
+    await connectLiveKit(roomId, `${name}-${currentUser.id}`, role);
   } catch (error) {
     console.error("Join error:", error);
     showMessage(`Join error: ${error.message}`);
@@ -806,7 +808,7 @@ async function connectLiveKit(roomName, participantName, role) {
     await lkRoom.localParticipant.setMicrophoneEnabled(micOn);
 
     await db.collection("rooms").doc(roomName).collection("participants").doc(currentUser.id).update({
-      micOn, allowedToSpeak, livekitIdentity: payload.identity || null
+      micOn, allowedToSpeak, livekitIdentity: payload.identity || `${participantName}`
     });
 
     updateMicUI();
