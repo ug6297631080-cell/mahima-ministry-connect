@@ -2572,4 +2572,5 @@ window.endMeeting =
   endMeeting;
 
 window.leaveRoom =
-  leaveRoom;
+  leaveRoom;window.showAudioDebugPanel = showAudioDebugPanel;
+window.copyAudioDebugReport = copyAudioDebugReport;
